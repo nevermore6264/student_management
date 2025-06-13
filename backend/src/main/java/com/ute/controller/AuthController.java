@@ -1,15 +1,6 @@
 package com.ute.controller;
 
-import com.ute.dto.request.LoginRequest;
-import com.ute.dto.request.RegisterRequest;
-import com.ute.dto.response.AuthResponse;
-import com.ute.entity.NguoiDung;
-import com.ute.entity.VaiTro;
-import com.ute.security.JwtTokenProvider;
-import com.ute.service.AuthService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,6 +11,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ute.dto.request.LoginRequest;
+import com.ute.dto.request.RegisterRequest;
+import com.ute.dto.response.ApiResponse;
+import com.ute.dto.response.AuthResponse;
+import com.ute.entity.NguoiDung;
+import com.ute.entity.VaiTro;
+import com.ute.security.JwtTokenProvider;
+import com.ute.service.AuthService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -36,7 +37,7 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+    public ApiResponse<AuthResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getEmail(),
@@ -52,18 +53,20 @@ public class AuthController {
                 .map(VaiTro::getMaVaiTro)
                 .toArray(String[]::new);
 
-        return ResponseEntity.ok(new AuthResponse(
+        AuthResponse authResponse = new AuthResponse(
                 jwt,
                 nguoiDung.getMaNguoiDung(),
                 nguoiDung.getTenNguoiDung(),
                 nguoiDung.getEmail(),
                 vaiTros
-        ));
+        );
+
+        return ApiResponse.success("Đăng nhập thành công", authResponse);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
+    public ApiResponse<NguoiDung> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         NguoiDung nguoiDung = authService.registerUser(registerRequest);
-        return ResponseEntity.ok("User registered successfully");
+        return ApiResponse.success("Đăng ký thành công", nguoiDung);
     }
 } 
