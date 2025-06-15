@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ute.dto.request.ForgotPasswordRequest;
 import com.ute.dto.request.LoginRequest;
 import com.ute.dto.request.RegisterRequest;
+import com.ute.dto.request.ResetPasswordRequest;
 import com.ute.dto.response.ApiResponse;
 import com.ute.dto.response.AuthResponse;
 import com.ute.entity.NguoiDung;
@@ -68,5 +70,17 @@ public class AuthController {
     public ApiResponse<NguoiDung> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         NguoiDung nguoiDung = authService.registerUser(registerRequest);
         return ApiResponse.success("Đăng ký thành công", nguoiDung);
+    }
+
+    @PostMapping("/forgot-password")
+    public ApiResponse<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return ApiResponse.success("Mã xác thực đã được gửi đến email của bạn", null);
+    }
+
+    @PostMapping("/reset-password")
+    public ApiResponse<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ApiResponse.success("Mật khẩu đã được đặt lại thành công", null);
     }
 } 

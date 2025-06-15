@@ -36,6 +36,10 @@ public class NguoiDung {
 
     private LocalDateTime ngayTao;
 
+    private String resetCode;
+
+    private LocalDateTime resetCodeExpiry;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "nguoidungvaitro",
