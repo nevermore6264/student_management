@@ -1,11 +1,24 @@
 package com.ute.entity;
 
-import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "SINHVIEN")
@@ -35,19 +48,24 @@ public class SinhVien {
     @Column(name = "diaChi", length = 200)
     private String diaChi;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "maLop")
+    @JsonBackReference
     private Lop lop;
 
-    @OneToMany(mappedBy = "sinhVien")
-    private List<Diem> diems;
+    @OneToMany(mappedBy = "sinhVien", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<Diem> diems = new HashSet<>();
 
-    @OneToMany(mappedBy = "sinhVien")
-    private List<KeHoachCoSinhVien> keHoachCoSinhViens;
+    @OneToMany(mappedBy = "sinhVien", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<KeHoachCoSinhVien> keHoachCoSinhViens = new HashSet<>();
 
-    @OneToMany(mappedBy = "sinhVien")
-    private List<PhienDangKy> phienDangKys;
+    @OneToMany(mappedBy = "sinhVien", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<PhienDangKy> phienDangKys = new HashSet<>();
 
-    @OneToMany(mappedBy = "sinhVien")
-    private List<LichSuDangKy> lichSuDangKys;
+    @OneToMany(mappedBy = "sinhVien", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<LichSuDangKy> lichSuDangKys = new HashSet<>();
 } 

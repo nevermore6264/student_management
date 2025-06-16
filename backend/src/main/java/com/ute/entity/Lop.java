@@ -1,10 +1,20 @@
 package com.ute.entity;
 
-import jakarta.persistence.*;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.List;
 
 @Entity
 @Table(name = "LOP")
@@ -21,6 +31,7 @@ public class Lop {
 
     @ManyToOne
     @JoinColumn(name = "maKhoa")
+    @JsonBackReference
     private Khoa khoa;
 
     @Column(name = "khoaHoc", length = 20)
@@ -30,5 +41,6 @@ public class Lop {
     private String heDaoTao;
 
     @OneToMany(mappedBy = "lop")
+    @JsonManagedReference
     private List<SinhVien> sinhViens;
 } 

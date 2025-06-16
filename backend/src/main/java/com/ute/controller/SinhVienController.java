@@ -2,10 +2,6 @@ package com.ute.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,50 +11,76 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ute.entity.SinhVien;
+import com.ute.dto.request.SinhVienRequest;
+import com.ute.dto.response.ApiResponse;
+import com.ute.dto.response.SinhVienResponse;
 import com.ute.service.SinhVienService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/sinhvien")
-@CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class SinhVienController {
-
-    @Autowired
-    private SinhVienService sinhVienService;
+    private final SinhVienService sinhVienService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<SinhVien>> getAllSinhVien() {
-        return ResponseEntity.ok(sinhVienService.getAllSinhVien());
+    public ApiResponse<List<SinhVienResponse>> getAllSinhVien() {
+        try {
+            List<SinhVienResponse> sinhViens = sinhVienService.getAllSinhVien();
+            return new ApiResponse<>(true, "Lấy danh sách sinh viên thành công", sinhViens);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, e.getMessage(), null);
+        }
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @userService.isCurrentUser(#id)")
-    public ResponseEntity<SinhVien> getSinhVienById(@PathVariable String id) {
-        return ResponseEntity.ok(sinhVienService.getSinhVienById(id));
-    }
-
-    @GetMapping("/lop/{maLop}")
-    public ResponseEntity<List<SinhVien>> getSinhVienByLop(@PathVariable String maLop) {
-        return ResponseEntity.ok(sinhVienService.getSinhVienByLop(maLop));
+    public ApiResponse<SinhVienResponse> getSinhVienById(@PathVariable String id) {
+        try {
+            SinhVienResponse sinhVien = sinhVienService.getSinhVienById(id);
+            return new ApiResponse<>(true, "Lấy thông tin sinh viên thành công", sinhVien);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, e.getMessage(), null);
+        }
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<SinhVien> createSinhVien(@RequestBody SinhVien sinhVien) {
-        return ResponseEntity.ok(sinhVienService.createSinhVien(sinhVien));
+    public ApiResponse<SinhVienResponse> createSinhVien(@RequestBody SinhVienRequest request) {
+        try {
+            SinhVienResponse createdSinhVien = sinhVienService.createSinhVien(request);
+            return new ApiResponse<>(true, "Thêm sinh viên thành công", createdSinhVien);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, e.getMessage(), null);
+        }
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or @userService.isCurrentUser(#id)")
-    public ResponseEntity<SinhVien> updateSinhVien(@PathVariable String id, @RequestBody SinhVien sinhVien) {
-        return ResponseEntity.ok(sinhVienService.updateSinhVien(id, sinhVien));
+    public ApiResponse<SinhVienResponse> updateSinhVien(@PathVariable String id, @RequestBody SinhVienRequest request) {
+        try {
+            SinhVienResponse updatedSinhVien = sinhVienService.updateSinhVien(id, request);
+            return new ApiResponse<>(true, "Cập nhật sinh viên thành công", updatedSinhVien);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, e.getMessage(), null);
+        }
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteSinhVien(@PathVariable String id) {
-        sinhVienService.deleteSinhVien(id);
-        return ResponseEntity.ok().build();
+    public ApiResponse<Void> deleteSinhVien(@PathVariable String id) {
+        try {
+            sinhVienService.deleteSinhVien(id);
+            return new ApiResponse<>(true, "Xóa sinh viên thành công", null);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, e.getMessage(), null);
+        }
     }
-} 
+
+    @GetMapping("/lop/{maLop}")
+    public ApiResponse<List<SinhVienResponse>> getSinhVienByLop(@PathVariable String maLop) {
+        try {
+            List<SinhVienResponse> sinhViens = sinhVienService.getSinhVienByLop(maLop);
+            return new ApiResponse<>(true, "Lấy danh sách sinh viên theo lớp thành công", sinhViens);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, e.getMessage(), null);
+        }
+    }
+}

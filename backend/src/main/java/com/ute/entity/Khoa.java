@@ -1,10 +1,17 @@
 package com.ute.entity;
 
-import jakarta.persistence.*;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.List;
 
 @Entity
 @Table(name = "KHOA")
@@ -35,12 +42,14 @@ public class Khoa {
     private Integer trangThai;
 
     @OneToMany(mappedBy = "khoa")
+    @JsonManagedReference
     private List<Lop> lops;
 
     @OneToMany(mappedBy = "khoa")
     private List<HocPhan> hocPhans;
 
     @OneToMany(mappedBy = "khoa")
+    @JsonManagedReference
     private List<GiangVien> giangViens;
 
     @OneToMany(mappedBy = "khoa")

@@ -1,12 +1,14 @@
 package com.ute.service.impl;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.ute.entity.GiangVien;
 import com.ute.repository.GiangVienRepository;
 import com.ute.service.GiangVienService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class GiangVienServiceImpl implements GiangVienService {
@@ -15,8 +17,9 @@ public class GiangVienServiceImpl implements GiangVienService {
     private GiangVienRepository giangVienRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<GiangVien> getAllGiangVien() {
-        return giangVienRepository.findAll();
+        return giangVienRepository.findAllWithRelations();
     }
 
     @Override

@@ -2,13 +2,14 @@ package com.ute.service;
 
 import java.util.List;
 
-import com.ute.entity.SinhVien;
+import com.ute.dto.request.SinhVienRequest;
+import com.ute.dto.response.SinhVienResponse;
 
 public interface SinhVienService {
-    List<SinhVien> getAllSinhVien();
-    SinhVien getSinhVienById(String id);
-    List<SinhVien> getSinhVienByLop(String maLop);
-    SinhVien createSinhVien(SinhVien sinhVien);
-    SinhVien updateSinhVien(String id, SinhVien sinhVien);
+    List<SinhVienResponse> getAllSinhVien();
+    SinhVienResponse getSinhVienById(String id);
+    SinhVienResponse createSinhVien(SinhVienRequest request);
+    SinhVienResponse updateSinhVien(String id, SinhVienRequest request);
     void deleteSinhVien(String id);
+    List<SinhVienResponse> getSinhVienByLop(String maLop);
 } 
