@@ -1,53 +1,71 @@
 package com.ute.service.impl;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.ute.dto.request.KhoaRequest;
+import com.ute.dto.response.KhoaResponse;
 import com.ute.entity.Khoa;
 import com.ute.repository.KhoaRepository;
 import com.ute.service.KhoaService;
 
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class KhoaServiceImpl implements KhoaService {
-
-    @Autowired
-    private KhoaRepository khoaRepository;
+    private final KhoaRepository khoaRepository;
 
     @Override
-    public List<Khoa> getAllKhoa() {
-        return khoaRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<KhoaResponse> getAllKhoa() {
+        return khoaRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Khoa getKhoaById(String id) {
-        return khoaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Khoa not found with id: " + id));
+    @Transactional(readOnly = true)
+    public KhoaResponse getKhoaById(String id) {
+        Khoa khoa = khoaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy khoa với mã: " + id));
+        return mapToResponse(khoa);
     }
 
     @Override
-    public Khoa createKhoa(Khoa khoa) {
-        return khoaRepository.save(khoa);
+    @Transactional
+    public KhoaResponse createKhoa(KhoaRequest request) {
+        Khoa khoa = new Khoa();
+        khoa.setMaKhoa(request.getMaKhoa());
+        khoa.setTenKhoa(request.getTenKhoa());
+        return mapToResponse(khoaRepository.save(khoa));
     }
 
     @Override
-    public Khoa updateKhoa(String id, Khoa khoa) {
-        Khoa existingKhoa = getKhoaById(id);
-        
-        existingKhoa.setTenKhoa(khoa.getTenKhoa());
-        existingKhoa.setSoDienThoai(khoa.getSoDienThoai());
-        existingKhoa.setEmail(khoa.getEmail());
-        existingKhoa.setDiaChi(khoa.getDiaChi());
-        existingKhoa.setMaTruong(khoa.getMaTruong());
-        existingKhoa.setTrangThai(khoa.getTrangThai());
-        
-        return khoaRepository.save(existingKhoa);
+    @Transactional
+    public KhoaResponse updateKhoa(String id, KhoaRequest request) {
+        Khoa khoa = khoaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy khoa với mã: " + id));
+        khoa.setTenKhoa(request.getTenKhoa());
+        return mapToResponse(khoaRepository.save(khoa));
     }
 
     @Override
+    @Transactional
     public void deleteKhoa(String id) {
-        Khoa khoa = getKhoaById(id);
+        Khoa khoa = khoaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy khoa với mã: " + id));
         khoaRepository.delete(khoa);
+    }
+
+    private KhoaResponse mapToResponse(Khoa khoa) {
+        KhoaResponse response = new KhoaResponse();
+        response.setMaKhoa(khoa.getMaKhoa());
+        response.setTenKhoa(khoa.getTenKhoa());
+        return response;
     }
 } 

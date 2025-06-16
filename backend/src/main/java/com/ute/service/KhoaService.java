@@ -2,12 +2,13 @@ package com.ute.service;
 
 import java.util.List;
 
-import com.ute.entity.Khoa;
+import com.ute.dto.request.KhoaRequest;
+import com.ute.dto.response.KhoaResponse;
 
 public interface KhoaService {
-    List<Khoa> getAllKhoa();
-    Khoa getKhoaById(String id);
-    Khoa createKhoa(Khoa khoa);
-    Khoa updateKhoa(String id, Khoa khoa);
+    List<KhoaResponse> getAllKhoa();
+    KhoaResponse getKhoaById(String id);
+    KhoaResponse createKhoa(KhoaRequest request);
+    KhoaResponse updateKhoa(String id, KhoaRequest request);
     void deleteKhoa(String id);
 } 
