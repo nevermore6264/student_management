@@ -60,10 +60,20 @@ public class SinhVienServiceImpl implements SinhVienService {
     @Override
     @Transactional
     public void deleteSinhVien(String id) {
-        if (!sinhVienRepository.existsById(id)) {
-            throw new RuntimeException("Không tìm thấy sinh viên với mã: " + id);
-        }
-        sinhVienRepository.deleteById(id);
+        SinhVien sinhVien = sinhVienRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sinh viên với mã: " + id));
+
+        // Xóa tất cả các bản ghi liên quan
+        sinhVien.getDiems().clear();
+        sinhVien.getKeHoachCoSinhViens().clear();
+        sinhVien.getPhienDangKys().clear();
+        sinhVien.getLichSuDangKys().clear();
+
+        // Lưu lại để cập nhật các quan hệ
+        sinhVienRepository.save(sinhVien);
+
+        // Xóa sinh viên
+        sinhVienRepository.delete(sinhVien);
     }
 
     @Override
