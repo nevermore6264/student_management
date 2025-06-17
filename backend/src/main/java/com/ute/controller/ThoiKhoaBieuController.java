@@ -20,7 +20,6 @@ import com.ute.dto.response.ThoiKhoaBieuResponse;
 import com.ute.service.ThoiKhoaBieuService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/thoikhoabieu")
