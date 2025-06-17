@@ -13,11 +13,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ute.dto.request.HocPhanRequest;
 import com.ute.dto.response.ApiResponse;
 import com.ute.dto.response.HocPhanResponse;
-import com.ute.entity.HocPhan;
 import com.ute.service.HocPhanService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -60,10 +61,9 @@ public class HocPhanController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<HocPhanResponse> createHocPhan(@RequestBody HocPhan hocPhan) {
+    public ApiResponse<HocPhanResponse> createHocPhan(@Valid @RequestBody HocPhanRequest request) {
         try {
-            HocPhan createdHocPhan = hocPhanService.createHocPhan(hocPhan);
-            HocPhanResponse response = hocPhanService.getHocPhanById(createdHocPhan.getMaHocPhan());
+            HocPhanResponse response = hocPhanService.createHocPhan(request);
             return new ApiResponse<>(true, "Tạo học phần thành công", response);
         } catch (Exception e) {
             return new ApiResponse<>(false, e.getMessage(), null);
@@ -72,10 +72,9 @@ public class HocPhanController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<HocPhanResponse> updateHocPhan(@PathVariable String id, @RequestBody HocPhan hocPhan) {
+    public ApiResponse<HocPhanResponse> updateHocPhan(@PathVariable String id, @Valid @RequestBody HocPhanRequest request) {
         try {
-            HocPhan updatedHocPhan = hocPhanService.updateHocPhan(id, hocPhan);
-            HocPhanResponse response = hocPhanService.getHocPhanById(updatedHocPhan.getMaHocPhan());
+            HocPhanResponse response = hocPhanService.updateHocPhan(id, request);
             return new ApiResponse<>(true, "Cập nhật học phần thành công", response);
         } catch (Exception e) {
             return new ApiResponse<>(false, e.getMessage(), null);

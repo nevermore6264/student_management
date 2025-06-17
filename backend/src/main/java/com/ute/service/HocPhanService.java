@@ -2,14 +2,14 @@ package com.ute.service;
 
 import java.util.List;
 
+import com.ute.dto.request.HocPhanRequest;
 import com.ute.dto.response.HocPhanResponse;
-import com.ute.entity.HocPhan;
 
 public interface HocPhanService {
     List<HocPhanResponse> getAllHocPhan();
     HocPhanResponse getHocPhanById(String id);
     List<HocPhanResponse> getHocPhanByKhoa(String maKhoa);
-    HocPhan createHocPhan(HocPhan hocPhan);
-    HocPhan updateHocPhan(String id, HocPhan hocPhan);
+    HocPhanResponse createHocPhan(HocPhanRequest request);
+    HocPhanResponse updateHocPhan(String id, HocPhanRequest request);
     void deleteHocPhan(String id);
 } 

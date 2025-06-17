@@ -1,5 +1,12 @@
 package com.ute.service.impl;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ute.dto.request.HocPhanRequest;
 import com.ute.dto.response.HeSoDiemResponse;
 import com.ute.dto.response.HocPhanResponse;
 import com.ute.dto.response.KeHoachCoSinhVienResponse;
@@ -7,31 +14,29 @@ import com.ute.dto.response.LopHocPhanResponse;
 import com.ute.entity.HeSoDiem;
 import com.ute.entity.HocPhan;
 import com.ute.entity.KeHoachCoSinhVien;
+import com.ute.entity.Khoa;
 import com.ute.entity.LopHocPhan;
 import com.ute.repository.HeSoDiemRepository;
 import com.ute.repository.HocPhanRepository;
 import com.ute.repository.KeHoachCoSinhVienRepository;
+import com.ute.repository.KhoaRepository;
 import com.ute.repository.LopHocPhanRepository;
 import com.ute.service.HocPhanService;
+
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class HocPhanServiceImpl implements HocPhanService {
 
     private final HocPhanRepository hocPhanRepository;
+    private final KhoaRepository khoaRepository;
     private final LopHocPhanRepository lopHocPhanRepository;
     private final KeHoachCoSinhVienRepository keHoachCoSinhVienRepository;
     private final HeSoDiemRepository heSoDiemRepository;
 
     @Override
-    @Transactional(readOnly = true)
     public List<HocPhanResponse> getAllHocPhan() {
         List<HocPhan> hocPhans = hocPhanRepository.findAllWithRelations();
         return hocPhans.stream()
@@ -40,7 +45,6 @@ public class HocPhanServiceImpl implements HocPhanService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public HocPhanResponse getHocPhanById(String id) {
         HocPhan hocPhan = hocPhanRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy học phần với mã: " + id));
@@ -48,29 +52,44 @@ public class HocPhanServiceImpl implements HocPhanService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<HocPhanResponse> getHocPhanByKhoa(String maKhoa) {
-        return hocPhanRepository.findByKhoa_MaKhoa(maKhoa).stream()
+        List<HocPhan> hocPhans = hocPhanRepository.findByKhoa_MaKhoa(maKhoa);
+        return hocPhans.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
-    public HocPhan createHocPhan(HocPhan hocPhan) {
-        return hocPhanRepository.save(hocPhan);
+    public HocPhanResponse createHocPhan(HocPhanRequest request) {
+        Khoa khoa = khoaRepository.findById(request.getMaKhoa())
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy khoa với mã: " + request.getMaKhoa()));
+
+        HocPhan hocPhan = new HocPhan();
+        hocPhan.setMaHocPhan(request.getMaHocPhan());
+        hocPhan.setTenHocPhan(request.getTenHocPhan());
+        hocPhan.setSoTinChi(request.getSoTinChi());
+        hocPhan.setKhoa(khoa);
+
+        HocPhan savedHocPhan = hocPhanRepository.save(hocPhan);
+        return mapToResponse(savedHocPhan);
     }
 
     @Override
     @Transactional
-    public HocPhan updateHocPhan(String id, HocPhan hocPhan) {
-        HocPhan existingHocPhan = hocPhanRepository.findById(id).get();
+    public HocPhanResponse updateHocPhan(String id, HocPhanRequest request) {
+        HocPhan existingHocPhan = hocPhanRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy học phần với mã: " + id));
 
-        existingHocPhan.setTenHocPhan(hocPhan.getTenHocPhan());
-        existingHocPhan.setSoTinChi(hocPhan.getSoTinChi());
-        existingHocPhan.setKhoa(hocPhan.getKhoa());
+        Khoa khoa = khoaRepository.findById(request.getMaKhoa())
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy khoa với mã: " + request.getMaKhoa()));
 
-        return hocPhanRepository.save(existingHocPhan);
+        existingHocPhan.setTenHocPhan(request.getTenHocPhan());
+        existingHocPhan.setSoTinChi(request.getSoTinChi());
+        existingHocPhan.setKhoa(khoa);
+
+        HocPhan updatedHocPhan = hocPhanRepository.save(existingHocPhan);
+        return mapToResponse(updatedHocPhan);
     }
 
     @Override
@@ -78,40 +97,20 @@ public class HocPhanServiceImpl implements HocPhanService {
     public void deleteHocPhan(String id) {
         // Xử lý các lớp học phần liên quan
         List<LopHocPhan> lopHocPhans = lopHocPhanRepository.findByHocPhan_MaHocPhan(id);
-        if (lopHocPhans != null) {
-            lopHocPhans.forEach(lhp -> {
-                // Xóa các bảng liên quan đến lớp học phần
-                if (lhp.getDiems() != null) {
-                    lhp.getDiems().forEach(diem -> diem.setLopHocPhan(null));
-                }
-                if (lhp.getDangKyHocPhans() != null) {
-                    lhp.getDangKyHocPhans().forEach(dkhp -> dkhp.setLopHocPhan(null));
-                }
-                if (lhp.getThoiKhoaBieus() != null) {
-                    lhp.getThoiKhoaBieus().forEach(tkb -> tkb.setLopHocPhan(null));
-                }
-                if (lhp.getLichSuDangKys() != null) {
-                    lhp.getLichSuDangKys().forEach(lsdk -> lsdk.setLopHocPhan(null));
-                }
-            });
-            lopHocPhanRepository.deleteAll(lopHocPhans);
+        for (LopHocPhan lopHocPhan : lopHocPhans) {
+            lopHocPhan.setHocPhan(null);
+            lopHocPhanRepository.save(lopHocPhan);
         }
 
-        // Xử lý kế hoạch có sinh viên liên quan
+        // Xử lý các kế hoạch có sinh viên liên quan
         List<KeHoachCoSinhVien> keHoachCoSinhViens = keHoachCoSinhVienRepository.findByHocPhan_MaHocPhan(id);
-        if (keHoachCoSinhViens != null) {
-            keHoachCoSinhVienRepository.deleteAll(keHoachCoSinhViens);
-        }
-
-        // Xử lý hệ số điểm liên quan
-        HeSoDiem heSoDiem = heSoDiemRepository.findById(id).orElse(null);
-        if (heSoDiem != null) {
-            heSoDiemRepository.delete(heSoDiem);
+        for (KeHoachCoSinhVien keHoach : keHoachCoSinhViens) {
+            keHoach.setHocPhan(null);
+            keHoachCoSinhVienRepository.save(keHoach);
         }
 
         // Xóa học phần
-
-        hocPhanRepository.delete(hocPhanRepository.findById(id).get());
+        hocPhanRepository.deleteById(id);
     }
 
     private HocPhanResponse mapToResponse(HocPhan hocPhan) {
@@ -119,27 +118,25 @@ public class HocPhanServiceImpl implements HocPhanService {
         response.setMaHocPhan(hocPhan.getMaHocPhan());
         response.setTenHocPhan(hocPhan.getTenHocPhan());
         response.setSoTinChi(hocPhan.getSoTinChi());
-
+        
         if (hocPhan.getKhoa() != null) {
             response.setMaKhoa(hocPhan.getKhoa().getMaKhoa());
             response.setTenKhoa(hocPhan.getKhoa().getTenKhoa());
         }
 
-        // Map LopHocPhans
-        if (hocPhan.getLopHocPhans() != null) {
-            response.setLopHocPhans(hocPhan.getLopHocPhans().stream()
-                    .map(this::mapToLopHocPhanResponse)
-                    .collect(Collectors.toList()));
-        }
+        // Map các lớp học phần
+        List<LopHocPhan> lopHocPhans = lopHocPhanRepository.findByHocPhan_MaHocPhan(hocPhan.getMaHocPhan());
+        response.setLopHocPhans(lopHocPhans.stream()
+                .map(this::mapToLopHocPhanResponse)
+                .collect(Collectors.toList()));
 
-        // Map KeHoachCoSinhViens
-        if (hocPhan.getKeHoachCoSinhViens() != null) {
-            response.setKeHoachCoSinhViens(hocPhan.getKeHoachCoSinhViens().stream()
-                    .map(this::mapToKeHoachCoSinhVienResponse)
-                    .collect(Collectors.toList()));
-        }
+        // Map các kế hoạch có sinh viên
+        List<KeHoachCoSinhVien> keHoachCoSinhViens = keHoachCoSinhVienRepository.findByHocPhan_MaHocPhan(hocPhan.getMaHocPhan());
+        response.setKeHoachCoSinhViens(keHoachCoSinhViens.stream()
+                .map(this::mapToKeHoachCoSinhVienResponse)
+                .collect(Collectors.toList()));
 
-        // Map HeSoDiem
+        // Map hệ số điểm
         if (hocPhan.getHeSoDiem() != null) {
             response.setHeSoDiem(mapToHeSoDiemResponse(hocPhan.getHeSoDiem()));
         }
