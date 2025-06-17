@@ -2,6 +2,7 @@ package com.ute.controller;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,10 +25,10 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/hocphan")
 @CrossOrigin(origins = "*")
-@RequiredArgsConstructor
 public class HocPhanController {
 
-    private final HocPhanService hocPhanService;
+    @Autowired
+    private HocPhanService hocPhanService;
 
     @GetMapping
     public ApiResponse<List<HocPhanResponse>> getAllHocPhan() {

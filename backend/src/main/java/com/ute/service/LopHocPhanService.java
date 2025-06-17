@@ -2,15 +2,15 @@ package com.ute.service;
 
 import java.util.List;
 
-import com.ute.entity.LopHocPhan;
+import com.ute.dto.request.LopHocPhanRequest;
+import com.ute.dto.response.LopHocPhanResponse;
 
 public interface LopHocPhanService {
-    List<LopHocPhan> findAll();
-    LopHocPhan findById(String id);
-    LopHocPhan save(LopHocPhan lopHocPhan);
+    List<LopHocPhanResponse> findAll();
+    LopHocPhanResponse findById(String id);
+    List<LopHocPhanResponse> findByHocPhan_MaHocPhan(String maHocPhan);
+    List<LopHocPhanResponse> findByGiangVien(String maGiangVien);
+    LopHocPhanResponse createLopHocPhan(LopHocPhanRequest request);
+    LopHocPhanResponse updateLopHocPhan(String id, LopHocPhanRequest request);
     void deleteById(String id);
-    List<LopHocPhan> findByHocPhan_MaHocPhan(String maHocPhan);
-    List<LopHocPhan> findByGiangVien(String maGiangVien);
-    LopHocPhan createLopHocPhan(LopHocPhan lopHocPhan);
-    LopHocPhan updateLopHocPhan(String id, LopHocPhan lopHocPhan);
 } 

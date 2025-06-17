@@ -34,7 +34,6 @@ public class HocPhanServiceImpl implements HocPhanService {
     private final KhoaRepository khoaRepository;
     private final LopHocPhanRepository lopHocPhanRepository;
     private final KeHoachCoSinhVienRepository keHoachCoSinhVienRepository;
-    private final HeSoDiemRepository heSoDiemRepository;
 
     @Override
     public List<HocPhanResponse> getAllHocPhan() {

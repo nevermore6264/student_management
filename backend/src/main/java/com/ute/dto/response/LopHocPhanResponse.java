@@ -14,4 +14,6 @@ public class LopHocPhanResponse {
     private LocalDateTime thoiGianKetThuc;
     private String phongHoc;
     private Boolean trangThai;
+    private String maHocPhan;
+    private String tenHocPhan;
 } 
