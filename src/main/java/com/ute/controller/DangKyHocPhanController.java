@@ -71,7 +71,7 @@ public class DangKyHocPhanController {
     }
 
     @PutMapping("/{maPhienDK}/{maSinhVien}/{maLopHP}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or #maSinhVien == authentication.principal.maNguoiDung")
     public ApiResponse<DangKyHocPhanResponse> updateDangKy(
             @PathVariable Integer maPhienDK,
             @PathVariable String maSinhVien,
@@ -88,7 +88,7 @@ public class DangKyHocPhanController {
     }
 
     @DeleteMapping("/{maPhienDK}/{maSinhVien}/{maLopHP}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or #maSinhVien == authentication.principal.maNguoiDung")
     public ApiResponse<Void> deleteDangKy(
             @PathVariable Integer maPhienDK,
             @PathVariable String maSinhVien,
@@ -96,9 +96,9 @@ public class DangKyHocPhanController {
         try {
             DangKyHocPhanId id = new DangKyHocPhanId(maPhienDK, maSinhVien, maLopHP);
             dangKyHocPhanService.deleteDangKy(id);
-            return new ApiResponse<>(true, "Xóa đăng ký học phần thành công", null);
+            return new ApiResponse<>(true, "Hủy đăng ký học phần thành công", null);
         } catch (Exception e) {
-            return new ApiResponse<>(false, "Lỗi khi xóa đăng ký học phần: " + e.getMessage(), null);
+            return new ApiResponse<>(false, "Lỗi khi hủy đăng ký học phần: " + e.getMessage(), null);
         }
     }
 
