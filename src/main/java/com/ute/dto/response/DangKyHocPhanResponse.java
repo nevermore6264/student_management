@@ -12,6 +12,9 @@ public class DangKyHocPhanResponse {
     private String tenLopHP;
     private String maHocPhan;
     private String tenHocPhan;
+    private Integer soTinChi;
+    private String giangVien;
+    private String phongHoc;
     private LocalDateTime thoiGianDangKy;
     private Boolean trangThai;
     private Integer ketQuaDangKy;
