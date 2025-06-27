@@ -10,6 +10,7 @@ import com.ute.dto.response.DiemResponse;
 import com.ute.dto.response.DiemTongQuanAllSinhVienResponse;
 import com.ute.dto.response.DiemTongQuanLopResponse;
 import com.ute.dto.response.DiemTongQuanResponse;
+import com.ute.dto.response.KetQuaHocTapResponse;
 import com.ute.dto.response.SinhVienTrongLopResponse;
 import com.ute.dto.response.TongQuanGiangVienResponse;
 
@@ -29,6 +30,9 @@ public interface DiemService {
     // Tổng quan và chi tiết cho toàn bộ sinh viên
     List<DiemTongQuanAllSinhVienResponse> getTongQuanTatCaSinhVien();
     List<DiemChiTietAllSinhVienResponse> getChiTietTatCaSinhVien();
+    
+    // Kết quả học tập tổng hợp
+    KetQuaHocTapResponse getKetQuaHocTap(String maSinhVien);
     
     // Các method mới cho giảng viên
     List<SinhVienTrongLopResponse> getSinhVienTrongLop(String maLopHP);

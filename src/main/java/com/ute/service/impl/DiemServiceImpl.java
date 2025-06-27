@@ -22,6 +22,7 @@ import com.ute.dto.response.DiemResponse;
 import com.ute.dto.response.DiemTongQuanAllSinhVienResponse;
 import com.ute.dto.response.DiemTongQuanLopResponse;
 import com.ute.dto.response.DiemTongQuanResponse;
+import com.ute.dto.response.KetQuaHocTapResponse;
 import com.ute.dto.response.SinhVienTrongLopResponse;
 import com.ute.dto.response.TongKetHocKyResponse;
 import com.ute.dto.response.TongQuanGiangVienResponse;
@@ -30,6 +31,7 @@ import com.ute.entity.DiemId;
 import com.ute.entity.KeHoachCoSinhVien;
 import com.ute.entity.KeHoachCoSinhVienId;
 import com.ute.entity.LopHocPhan;
+import com.ute.entity.SinhVien;
 import com.ute.repository.DiemRepository;
 import com.ute.repository.KeHoachCoSinhVienRepository;
 import com.ute.repository.LopHocPhanRepository;
@@ -132,16 +134,31 @@ public class DiemServiceImpl implements DiemService {
         List<Diem> diemList = diemRepository.findBySinhVien_MaSinhVien(maSinhVien);
         DiemTongQuanResponse response = new DiemTongQuanResponse();
         
+        // Nếu không có điểm nào, trả về response rỗng
+        if (diemList.isEmpty()) {
+            response.setTongKetTheoHocKy(new ArrayList<>());
+            response.setDiemTrungBinh(0.0);
+            response.setTongSoTinChi(0);
+            response.setSoHocPhan(0);
+            response.setXepLoai("Chưa có điểm");
+            return response;
+        }
+        
         // Group scores by semester
         Map<String, List<Diem>> diemByHocKy = diemList.stream()
                 .collect(Collectors.groupingBy(d -> {
                     if (d.getLopHocPhan() != null && d.getLopHocPhan().getHocPhan() != null) {
-                        // Get semester and academic year from KeHoachCoSinhVien
-                        KeHoachCoSinhVien keHoach = keHoachCoSinhVienRepository
-                            .findById(new KeHoachCoSinhVienId(1, maSinhVien, d.getLopHocPhan().getHocPhan().getMaHocPhan()))
-                            .orElse(null);
-                        if (keHoach != null) {
-                            return keHoach.getHocKyDuKien() + "_" + keHoach.getNamHocDuKien();
+                        try {
+                            // Get semester and academic year from KeHoachCoSinhVien
+                            KeHoachCoSinhVien keHoach = keHoachCoSinhVienRepository
+                                .findById(new KeHoachCoSinhVienId(1, maSinhVien, d.getLopHocPhan().getHocPhan().getMaHocPhan()))
+                                .orElse(null);
+                            if (keHoach != null) {
+                                return keHoach.getHocKyDuKien() + "_" + keHoach.getNamHocDuKien();
+                            }
+                        } catch (Exception e) {
+                            // Log error but continue processing
+                            System.err.println("Error getting KeHoachCoSinhVien for " + maSinhVien + ": " + e.getMessage());
                         }
                     }
                     return "unknown";
@@ -150,9 +167,25 @@ public class DiemServiceImpl implements DiemService {
         List<TongKetHocKyResponse> tongKetHocKyList = new ArrayList<>();
         double tongDiemTrungBinh = 0;
         int tongSoTinChi = 0;
+        int soHocPhanCoDiem = 0;
 
+        // Xử lý các điểm có thông tin học kỳ
         for (Map.Entry<String, List<Diem>> entry : diemByHocKy.entrySet()) {
-            if (entry.getKey().equals("unknown")) continue;
+            if (entry.getKey().equals("unknown")) {
+                // Xử lý các điểm không có thông tin học kỳ
+                List<Diem> diemUnknown = entry.getValue();
+                for (Diem diem : diemUnknown) {
+                    if (diem.getLopHocPhan() != null && diem.getLopHocPhan().getHocPhan() != null) {
+                        int tinChi = diem.getLopHocPhan().getHocPhan().getSoTinChi();
+                        if (diem.getDiemTongKet() != null) {
+                            tongDiemTrungBinh += diem.getDiemTongKet() * tinChi;
+                            tongSoTinChi += tinChi;
+                            soHocPhanCoDiem++;
+                        }
+                    }
+                }
+                continue;
+            }
             
             String[] hocKyInfo = entry.getKey().split("_");
             String hocKy = hocKyInfo[0];
@@ -166,9 +199,12 @@ public class DiemServiceImpl implements DiemService {
             for (Diem diem : diemHocKy) {
                 if (diem.getLopHocPhan() != null && diem.getLopHocPhan().getHocPhan() != null) {
                     int tinChi = diem.getLopHocPhan().getHocPhan().getSoTinChi();
-                    tongTinChi += tinChi;
-                    diemTrungBinh += diem.getDiemTongKet() * tinChi;
-                    soTinChi += tinChi;
+                    if (diem.getDiemTongKet() != null) {
+                        tongTinChi += tinChi;
+                        diemTrungBinh += diem.getDiemTongKet() * tinChi;
+                        soTinChi += tinChi;
+                        soHocPhanCoDiem++;
+                    }
                 }
             }
 
@@ -195,7 +231,7 @@ public class DiemServiceImpl implements DiemService {
         response.setTongKetTheoHocKy(tongKetHocKyList);
         response.setDiemTrungBinh(tongDiemTrungBinh);
         response.setTongSoTinChi(tongSoTinChi);
-        response.setSoHocPhan(diemList.size());
+        response.setSoHocPhan(soHocPhanCoDiem);
         response.setXepLoai(calculateXepLoai(tongDiemTrungBinh));
 
         return response;
@@ -690,5 +726,119 @@ public class DiemServiceImpl implements DiemService {
             throw new RuntimeException("ID không hợp lệ");
         }
         return new DiemId(parts[0], parts[1]);
+    }
+
+    @Override
+    public KetQuaHocTapResponse getKetQuaHocTap(String maSinhVien) {
+        KetQuaHocTapResponse response = new KetQuaHocTapResponse();
+        
+        // Lấy thông tin sinh viên
+        SinhVien sinhVien = sinhVienRepository.findById(maSinhVien).orElse(null);
+        if (sinhVien != null) {
+            response.setMaSinhVien(sinhVien.getMaSinhVien());
+            response.setHoTenSinhVien(sinhVien.getHoTenSinhVien());
+        } else {
+            response.setMaSinhVien(maSinhVien);
+            response.setHoTenSinhVien("N/A");
+        }
+        
+        // Lấy danh sách điểm
+        List<Diem> diemList = diemRepository.findBySinhVien_MaSinhVien(maSinhVien);
+        
+        // Tính toán tổng quan
+        double tongDiem = 0;
+        int tongTinChi = 0;
+        int tinChiDat = 0;
+        int tinChiDaDat = 0;
+        
+        List<KetQuaHocTapResponse.ChiTietDiemResponse> chiTietDiemList = new ArrayList<>();
+        
+        for (Diem diem : diemList) {
+            if (diem.getLopHocPhan() != null && diem.getLopHocPhan().getHocPhan() != null) {
+                int soTinChi = diem.getLopHocPhan().getHocPhan().getSoTinChi();
+                tongTinChi += soTinChi;
+                
+                KetQuaHocTapResponse.ChiTietDiemResponse chiTiet = new KetQuaHocTapResponse.ChiTietDiemResponse();
+                chiTiet.setMaHocPhan(diem.getLopHocPhan().getHocPhan().getMaHocPhan());
+                chiTiet.setTenHocPhan(diem.getLopHocPhan().getHocPhan().getTenHocPhan());
+                chiTiet.setSoTinChi(soTinChi);
+                
+                // Tính điểm quá trình (chuyên cần + giữa kỳ)
+                Float diemQuaTrinh = null;
+                if (diem.getDiemChuyenCan() != null || diem.getDiemGiuaKy() != null) {
+                    float tong = 0;
+                    int count = 0;
+                    if (diem.getDiemChuyenCan() != null) {
+                        tong += diem.getDiemChuyenCan();
+                        count++;
+                    }
+                    if (diem.getDiemGiuaKy() != null) {
+                        tong += diem.getDiemGiuaKy();
+                        count++;
+                    }
+                    diemQuaTrinh = count > 0 ? tong / count : null;
+                }
+                chiTiet.setDiemQuaTrinh(diemQuaTrinh);
+                
+                // Điểm thi cuối kỳ
+                chiTiet.setDiemThi(diem.getDiemCuoiKy());
+                
+                // Điểm tổng kết
+                chiTiet.setDiemTongKet(diem.getDiemTongKet());
+                
+                // Điểm chữ
+                if (diem.getDiemTongKet() != null) {
+                    chiTiet.setDiemChu(convertToLetterGrade(diem.getDiemTongKet()));
+                    
+                    // Tính tổng điểm và tín chỉ đạt
+                    tongDiem += diem.getDiemTongKet() * soTinChi;
+                    tinChiDaDat += soTinChi;
+                    
+                    if (diem.getDiemTongKet() >= 5.0) {
+                        tinChiDat += soTinChi;
+                    }
+                }
+                
+                // Trạng thái
+                if (diem.getDiemTongKet() != null) {
+                    chiTiet.setTrangThai(diem.getDiemTongKet() >= 5.0 ? "Đạt" : "Không đạt");
+                } else {
+                    chiTiet.setTrangThai("Chưa có điểm");
+                }
+                
+                chiTietDiemList.add(chiTiet);
+            }
+        }
+        
+        // Tính điểm trung bình
+        double diemTrungBinh = tinChiDaDat > 0 ? tongDiem / tinChiDaDat : 0.0;
+        
+        // Tính tỷ lệ
+        double tyLeDat = tinChiDaDat > 0 ? (double) tinChiDat / tinChiDaDat * 100 : 0.0;
+        double tyLeHoanThanh = tongTinChi > 0 ? (double) tinChiDaDat / tongTinChi * 100 : 0.0;
+        
+        // Set response
+        response.setDiemTrungBinh(Math.round(diemTrungBinh * 100.0) / 100.0); // Làm tròn 2 chữ số
+        response.setXepLoai(calculateXepLoai(diemTrungBinh));
+        response.setTongSoTinChi(tongTinChi);
+        response.setTinChiDat(tinChiDat);
+        response.setTyLeDat(Math.round(tyLeDat * 100.0) / 100.0);
+        response.setTinChiDaDat(tinChiDaDat);
+        response.setTyLeHoanThanh(Math.round(tyLeHoanThanh * 100.0) / 100.0);
+        response.setChiTietDiem(chiTietDiemList);
+        
+        return response;
+    }
+    
+    private String convertToLetterGrade(double diem) {
+        if (diem >= 9.0) return "A+";
+        if (diem >= 8.5) return "A";
+        if (diem >= 8.0) return "B+";
+        if (diem >= 7.0) return "B";
+        if (diem >= 6.5) return "C+";
+        if (diem >= 5.5) return "C";
+        if (diem >= 5.0) return "D+";
+        if (diem >= 4.0) return "D";
+        return "F";
     }
 } 

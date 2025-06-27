@@ -1,6 +1,8 @@
 package com.ute.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +25,7 @@ import com.ute.dto.response.DiemFullInfoResponse;
 import com.ute.dto.response.DiemResponse;
 import com.ute.dto.response.DiemTongQuanAllSinhVienResponse;
 import com.ute.dto.response.DiemTongQuanResponse;
+import com.ute.dto.response.KetQuaHocTapResponse;
 import com.ute.dto.response.TongQuanGiangVienResponse;
 import com.ute.service.DiemService;
 
@@ -154,5 +157,35 @@ public class DiemController {
     public ApiResponse<TongQuanGiangVienResponse> tongQuanGiangVien(@PathVariable String maGiangVien) {
         TongQuanGiangVienResponse response = diemService.tongQuanGiangVien(maGiangVien);
         return new ApiResponse<>(true, "Tổng quan điểm cho giảng viên", response);
+    }
+
+    @GetMapping("/test/{maSinhVien}")
+    public ApiResponse<Object> testDiemData(@PathVariable String maSinhVien) {
+        try {
+            List<DiemResponse> diemSinhVien = diemService.getDiemBySinhVien(maSinhVien);
+            DiemTongQuanResponse tongQuan = diemService.getTongQuanDiem(maSinhVien);
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("soDiemSinhVien", diemSinhVien.size());
+            result.put("maSinhVien", maSinhVien);
+            result.put("tongQuan", tongQuan);
+            result.put("message", "Test completed successfully");
+            
+            return new ApiResponse<>(true, "Test data thành công", result);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, "Lỗi: " + e.getMessage(), null);
+        }
+    }
+
+    // Kết quả học tập tổng hợp cho sinh viên
+    @GetMapping("/sinhvien/{maSinhVien}/ketquahoctap")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GIANGVIEN') or #maSinhVien == authentication.principal.maNguoiDung")
+    public ApiResponse<KetQuaHocTapResponse> getKetQuaHocTap(@PathVariable String maSinhVien) {
+        try {
+            KetQuaHocTapResponse response = diemService.getKetQuaHocTap(maSinhVien);
+            return new ApiResponse<>(true, "Lấy kết quả học tập thành công", response);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, "Lỗi khi lấy kết quả học tập: " + e.getMessage(), null);
+        }
     }
 } 
