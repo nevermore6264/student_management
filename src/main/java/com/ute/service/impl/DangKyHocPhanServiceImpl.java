@@ -168,10 +168,13 @@ public class DangKyHocPhanServiceImpl implements DangKyHocPhanService {
         if (dangKy.getLopHocPhan() != null) {
             response.setMaLopHP(dangKy.getLopHocPhan().getMaLopHP());
             response.setTenLopHP(dangKy.getLopHocPhan().getTenLopHP());
+            response.setGiangVien(dangKy.getLopHocPhan().getGiangVien());
+            response.setPhongHoc(dangKy.getLopHocPhan().getPhongHoc());
             
             if (dangKy.getLopHocPhan().getHocPhan() != null) {
                 response.setMaHocPhan(dangKy.getLopHocPhan().getHocPhan().getMaHocPhan());
                 response.setTenHocPhan(dangKy.getLopHocPhan().getHocPhan().getTenHocPhan());
+                response.setSoTinChi(dangKy.getLopHocPhan().getHocPhan().getSoTinChi());
             }
         }
         
