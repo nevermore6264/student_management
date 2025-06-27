@@ -32,7 +32,7 @@ public interface DiemService {
     // Các method mới cho giảng viên
     List<SinhVienTrongLopResponse> getSinhVienTrongLop(String maLopHP);
     DiemResponse nhapDiem(DiemRequest request);
-    DiemResponse capNhatDiem(String id, DiemRequest request);
+    DiemResponse capNhatDiem(String maSinhVien, String maLopHP, DiemRequest request);
     DiemTongQuanLopResponse getTongQuanDiemLop(String maLopHP);
     byte[] xuatBaoCaoDiem(String maLopHP);
 } 

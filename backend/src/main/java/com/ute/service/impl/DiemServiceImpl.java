@@ -1,10 +1,13 @@
 package com.ute.service.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.alibaba.excel.EasyExcel;
+import com.ute.dto.response.DiemExportResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -362,14 +365,12 @@ public class DiemServiceImpl implements DiemService {
         response.setMaSinhVien(diem.getSinhVien().getMaSinhVien());
         response.setHoTenSinhVien(diem.getSinhVien().getHoTenSinhVien());
         response.setMaLopHP(diem.getLopHocPhan().getMaLopHP());
+        response.setDiemChuyenCan(diem.getDiemChuyenCan());
         response.setDiemGiuaKy(diem.getDiemGiuaKy());
         response.setDiemCuoiKy(diem.getDiemCuoiKy());
-
-        if (diem.getDiemGiuaKy() != null && diem.getDiemCuoiKy() != null) {
-            float diemTongKet = diem.getDiemGiuaKy() * 0.4f + diem.getDiemCuoiKy() * 0.6f;
-            response.setDiemTongKet(diemTongKet);
-        }
-
+        response.setDiemTongKet(diem.getDiemTongKet());
+        response.setGhiChu(diem.getGhiChu());
+        // Map thêm các trường khác nếu cần
         return response;
     }
 
@@ -432,20 +433,17 @@ public class DiemServiceImpl implements DiemService {
 
     @Override
     @Transactional
-    public DiemResponse capNhatDiem(String id, DiemRequest request) {
-        DiemId diemId = new DiemId(request.getMaSinhVien(), request.getMaLopHP());
+    public DiemResponse capNhatDiem(String maSinhVien, String maLopHP, DiemRequest request) {
+        DiemId diemId = new DiemId(maSinhVien, maLopHP);
         Diem diem = diemRepository.findById(diemId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy điểm cần cập nhật"));
-        
         diem.setDiemChuyenCan(request.getDiemChuyenCan());
         diem.setDiemGiuaKy(request.getDiemGiuaKy());
         diem.setDiemCuoiKy(request.getDiemCuoiKy());
         diem.setGhiChu(request.getGhiChu());
-        
         // Tính lại điểm tổng kết
         float diemTongKet = calculateDiemTongKet(request.getDiemChuyenCan(), request.getDiemGiuaKy(), request.getDiemCuoiKy());
         diem.setDiemTongKet(diemTongKet);
-        
         return mapToResponse(diemRepository.save(diem));
     }
 
@@ -506,9 +504,30 @@ public class DiemServiceImpl implements DiemService {
 
     @Override
     public byte[] xuatBaoCaoDiem(String maLopHP) {
-        // TODO: Implement xuất báo cáo điểm ra file Excel hoặc PDF
-        // Có thể sử dụng Apache POI cho Excel hoặc iText cho PDF
-        return new byte[0];
+        List<Diem> diemList = diemRepository.findByLopHocPhan_MaLopHP(maLopHP);
+    
+        // Tạo DTO cho export
+        List<DiemExportResponse> exportList = diemList.stream().map(diem -> {
+            DiemExportResponse dto = new DiemExportResponse();
+            dto.setMaSinhVien(diem.getSinhVien().getMaSinhVien());
+            dto.setHoTenSinhVien(diem.getSinhVien().getHoTenSinhVien());
+            dto.setDiemChuyenCan(diem.getDiemChuyenCan());
+            dto.setDiemGiuaKy(diem.getDiemGiuaKy());
+            dto.setDiemCuoiKy(diem.getDiemCuoiKy());
+            dto.setDiemTongKet(diem.getDiemTongKet());
+            dto.setGhiChu(diem.getGhiChu());
+            return dto;
+        }).toList();
+    
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            EasyExcel.write(out, DiemExportResponse.class)
+                .sheet("Báo cáo điểm")
+                .doWrite(exportList);
+            return out.toByteArray();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
     }
 
     // ==================== HELPER METHODS ====================

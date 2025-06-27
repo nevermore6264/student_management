@@ -3,6 +3,9 @@ package com.ute.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -141,12 +144,11 @@ public class LopHocPhanController {
      */
     @GetMapping("/{maLopHP}/baocao")
     @PreAuthorize("hasRole('GIANGVIEN') or hasRole('ADMIN')")
-    public ApiResponse<byte[]> xuatBaoCaoDiem(@PathVariable String maLopHP) {
-        try {
-            byte[] report = diemService.xuatBaoCaoDiem(maLopHP);
-            return new ApiResponse<>(true, "Xuất báo cáo điểm thành công", report);
-        } catch (Exception e) {
-            return new ApiResponse<>(false, e.getMessage(), null);
-        }
+    public ResponseEntity<byte[]> xuatBaoCaoDiem(@PathVariable String maLopHP) {
+        byte[] fileContent = diemService.xuatBaoCaoDiem(maLopHP);
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=BaoCao_Lop_" + maLopHP + ".xlsx")
+            .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+            .body(fileContent);
     }
 } 

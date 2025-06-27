@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ute.dto.request.DiemRequest;
@@ -120,13 +121,13 @@ public class DiemController {
     }
 
     /**
-     * Cập nhật điểm cho sinh viên
+     * Cập nhật điểm cho sinh viên (dùng composite key)
      */
-    @PutMapping("/capnhat/{id}")
+    @PutMapping("/capnhat")
     @PreAuthorize("hasRole('GIANGVIEN')")
-    public ApiResponse<DiemResponse> capNhatDiem(@PathVariable String id, @Valid @RequestBody DiemRequest request) {
+    public ApiResponse<DiemResponse> capNhatDiem(@RequestParam String maSinhVien, @RequestParam String maLopHP, @Valid @RequestBody DiemRequest request) {
         try {
-            DiemResponse response = diemService.capNhatDiem(id, request);
+            DiemResponse response = diemService.capNhatDiem(maSinhVien, maLopHP, request);
             return new ApiResponse<>(true, "Cập nhật điểm thành công", response);
         } catch (Exception e) {
             return new ApiResponse<>(false, e.getMessage(), null);
