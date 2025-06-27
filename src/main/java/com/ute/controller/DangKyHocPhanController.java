@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ute.dto.request.DangKyHocPhanRequest;
 import com.ute.dto.response.ApiResponse;
 import com.ute.dto.response.DangKyHocPhanResponse;
 import com.ute.entity.DangKyHocPhan;
+import com.ute.entity.DangKyHocPhanId;
 import com.ute.service.DangKyHocPhanService;
 
 @RestController
@@ -57,10 +59,10 @@ public class DangKyHocPhanController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN') or #dangKyHocPhan.sinhVien.maSinhVien == authentication.principal.maNguoiDung")
-    public ApiResponse<DangKyHocPhanResponse> createDangKy(@RequestBody DangKyHocPhan dangKyHocPhan) {
+    @PreAuthorize("hasRole('ADMIN') or #request.maSinhVien == authentication.principal.maNguoiDung")
+    public ApiResponse<DangKyHocPhanResponse> createDangKy(@RequestBody DangKyHocPhanRequest request) {
         try {
-            DangKyHocPhan savedDangKy = dangKyHocPhanService.createDangKy(dangKyHocPhan);
+            DangKyHocPhan savedDangKy = dangKyHocPhanService.createDangKyFromRequest(request);
             DangKyHocPhanResponse response = mapToResponse(savedDangKy);
             return new ApiResponse<>(true, "Đăng ký học phần thành công", response);
         } catch (Exception e) {
@@ -68,10 +70,15 @@ public class DangKyHocPhanController {
         }
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{maPhienDK}/{maSinhVien}/{maLopHP}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<DangKyHocPhanResponse> updateDangKy(@PathVariable String id, @RequestBody DangKyHocPhan dangKyHocPhan) {
+    public ApiResponse<DangKyHocPhanResponse> updateDangKy(
+            @PathVariable Integer maPhienDK,
+            @PathVariable String maSinhVien,
+            @PathVariable String maLopHP,
+            @RequestBody DangKyHocPhan dangKyHocPhan) {
         try {
+            DangKyHocPhanId id = new DangKyHocPhanId(maPhienDK, maSinhVien, maLopHP);
             DangKyHocPhan updatedDangKy = dangKyHocPhanService.updateDangKy(id, dangKyHocPhan);
             DangKyHocPhanResponse response = mapToResponse(updatedDangKy);
             return new ApiResponse<>(true, "Cập nhật đăng ký học phần thành công", response);
@@ -80,10 +87,14 @@ public class DangKyHocPhanController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{maPhienDK}/{maSinhVien}/{maLopHP}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Void> deleteDangKy(@PathVariable String id) {
+    public ApiResponse<Void> deleteDangKy(
+            @PathVariable Integer maPhienDK,
+            @PathVariable String maSinhVien,
+            @PathVariable String maLopHP) {
         try {
+            DangKyHocPhanId id = new DangKyHocPhanId(maPhienDK, maSinhVien, maLopHP);
             dangKyHocPhanService.deleteDangKy(id);
             return new ApiResponse<>(true, "Xóa đăng ký học phần thành công", null);
         } catch (Exception e) {

@@ -1,5 +1,6 @@
 package com.ute.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,9 +9,18 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.ute.dto.request.DangKyHocPhanRequest;
 import com.ute.dto.response.DangKyHocPhanResponse;
 import com.ute.entity.DangKyHocPhan;
+import com.ute.entity.DangKyHocPhanId;
+import com.ute.entity.LopHocPhan;
+import com.ute.entity.PhienDangKy;
+import com.ute.entity.PhienDangKyId;
+import com.ute.entity.SinhVien;
 import com.ute.repository.DangKyHocPhanRepository;
+import com.ute.repository.LopHocPhanRepository;
+import com.ute.repository.PhienDangKyRepository;
+import com.ute.repository.SinhVienRepository;
 import com.ute.service.DangKyHocPhanService;
 
 @Service
@@ -18,6 +28,15 @@ public class DangKyHocPhanServiceImpl implements DangKyHocPhanService {
 
     @Autowired
     private DangKyHocPhanRepository dangKyHocPhanRepository;
+    
+    @Autowired
+    private SinhVienRepository sinhVienRepository;
+    
+    @Autowired
+    private LopHocPhanRepository lopHocPhanRepository;
+    
+    @Autowired
+    private PhienDangKyRepository phienDangKyRepository;
 
     @Override
     public List<DangKyHocPhan> getDangKyBySinhVien(String maSinhVien) {
@@ -35,7 +54,59 @@ public class DangKyHocPhanServiceImpl implements DangKyHocPhanService {
     }
 
     @Override
-    public DangKyHocPhan updateDangKy(String id, DangKyHocPhan dangKyHocPhan) {
+    public DangKyHocPhan createDangKyFromRequest(DangKyHocPhanRequest request) {
+        // Kiểm tra sinh viên tồn tại
+        SinhVien sinhVien = sinhVienRepository.findById(request.getMaSinhVien())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sinh viên với mã: " + request.getMaSinhVien()));
+        
+        // Kiểm tra lớp học phần tồn tại
+        LopHocPhan lopHocPhan = lopHocPhanRepository.findById(request.getMaLopHP())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp học phần với mã: " + request.getMaLopHP()));
+        
+        // Tìm hoặc tạo phiên đăng ký
+        PhienDangKy phienDangKy = null;
+        if (request.getMaPhienDK() != null) {
+            PhienDangKyId phienDangKyId = new PhienDangKyId(request.getMaPhienDK(), request.getMaSinhVien());
+            phienDangKy = phienDangKyRepository.findById(phienDangKyId).orElse(null);
+        }
+        
+        // Nếu không có phiên đăng ký, tạo mới
+        if (phienDangKy == null) {
+            phienDangKy = new PhienDangKy();
+            phienDangKy.setId(new PhienDangKyId(request.getMaPhienDK() != null ? request.getMaPhienDK() : 1, request.getMaSinhVien()));
+            phienDangKy.setSinhVien(sinhVien);
+            phienDangKy.setNgayGioBatDau(LocalDateTime.now());
+            phienDangKy.setThoiGian(30); // 30 phút mặc định
+            phienDangKy.setTrangThai(true);
+            phienDangKy = phienDangKyRepository.save(phienDangKy);
+        }
+        
+        // Tạo composite key
+        DangKyHocPhanId dangKyId = new DangKyHocPhanId(
+            phienDangKy.getId().getMaPhienDK(),
+            request.getMaSinhVien(),
+            request.getMaLopHP()
+        );
+        
+        // Kiểm tra xem đã đăng ký chưa
+        if (dangKyHocPhanRepository.findById(dangKyId).isPresent()) {
+            throw new RuntimeException("Sinh viên đã đăng ký lớp học phần này rồi");
+        }
+        
+        // Tạo đăng ký học phần
+        DangKyHocPhan dangKyHocPhan = new DangKyHocPhan();
+        dangKyHocPhan.setId(dangKyId);
+        dangKyHocPhan.setPhienDangKy(phienDangKy);
+        dangKyHocPhan.setLopHocPhan(lopHocPhan);
+        dangKyHocPhan.setThoiGianDangKy(request.getThoiGianDangKy() != null ? request.getThoiGianDangKy() : LocalDateTime.now());
+        dangKyHocPhan.setTrangThai(request.getTrangThai() != null ? request.getTrangThai() : true);
+        dangKyHocPhan.setKetQuaDangKy(request.getKetQuaDangKy() != null ? request.getKetQuaDangKy() : 1);
+        
+        return dangKyHocPhanRepository.save(dangKyHocPhan);
+    }
+
+    @Override
+    public DangKyHocPhan updateDangKy(DangKyHocPhanId id, DangKyHocPhan dangKyHocPhan) {
         DangKyHocPhan existingDangKy = dangKyHocPhanRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("DangKyHocPhan not found with id: " + id));
         
@@ -46,7 +117,7 @@ public class DangKyHocPhanServiceImpl implements DangKyHocPhanService {
     }
 
     @Override
-    public void deleteDangKy(String id) {
+    public void deleteDangKy(DangKyHocPhanId id) {
         DangKyHocPhan dangKyHocPhan = dangKyHocPhanRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("DangKyHocPhan not found with id: " + id));
         dangKyHocPhanRepository.delete(dangKyHocPhan);
