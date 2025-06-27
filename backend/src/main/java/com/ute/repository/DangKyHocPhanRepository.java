@@ -11,4 +11,5 @@ import com.ute.entity.DangKyHocPhan;
 public interface DangKyHocPhanRepository extends JpaRepository<DangKyHocPhan, String> {
     List<DangKyHocPhan> findByPhienDangKy_SinhVien_MaSinhVien(String maSinhVien);
     List<DangKyHocPhan> findByLopHocPhan_MaLopHP(String maLopHP);
+    List<DangKyHocPhan> findByLopHocPhan_HocPhan_MaHocPhan(String maHocPhan);
 } 

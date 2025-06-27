@@ -16,11 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ute.dto.request.HocPhanRequest;
 import com.ute.dto.response.ApiResponse;
+import com.ute.dto.response.DangKyHocPhanResponse;
 import com.ute.dto.response.HocPhanResponse;
+import com.ute.service.DangKyHocPhanService;
 import com.ute.service.HocPhanService;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/hocphan")
@@ -29,6 +30,9 @@ public class HocPhanController {
 
     @Autowired
     private HocPhanService hocPhanService;
+
+    @Autowired
+    private DangKyHocPhanService dangKyHocPhanService;
 
     @GetMapping
     public ApiResponse<List<HocPhanResponse>> getAllHocPhan() {
@@ -88,6 +92,36 @@ public class HocPhanController {
         try {
             hocPhanService.deleteHocPhan(id);
             return new ApiResponse<>(true, "Xóa học phần thành công", null);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, e.getMessage(), null);
+        }
+    }
+
+    // ==================== API CHO GIẢNG VIÊN ====================
+
+    /**
+     * Lấy lịch sử đăng ký của sinh viên trong học phần
+     */
+    @GetMapping("/{maHocPhan}/lichsu")
+    @PreAuthorize("hasRole('GIANGVIEN') or hasRole('ADMIN')")
+    public ApiResponse<List<DangKyHocPhanResponse>> getLichSuDangKy(@PathVariable String maHocPhan) {
+        try {
+            List<DangKyHocPhanResponse> list = dangKyHocPhanService.getLichSuDangKyByHocPhan(maHocPhan);
+            return new ApiResponse<>(true, "Lấy lịch sử đăng ký thành công", list);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, e.getMessage(), null);
+        }
+    }
+
+    /**
+     * Lấy thống kê đăng ký học phần
+     */
+    @GetMapping("/{maHocPhan}/thongke")
+    @PreAuthorize("hasRole('GIANGVIEN') or hasRole('ADMIN')")
+    public ApiResponse<Object> getThongKeDangKy(@PathVariable String maHocPhan) {
+        try {
+            Object thongKe = dangKyHocPhanService.getThongKeDangKyByHocPhan(maHocPhan);
+            return new ApiResponse<>(true, "Lấy thống kê đăng ký thành công", thongKe);
         } catch (Exception e) {
             return new ApiResponse<>(false, e.getMessage(), null);
         }

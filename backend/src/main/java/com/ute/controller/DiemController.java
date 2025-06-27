@@ -2,6 +2,7 @@ package com.ute.controller;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,14 +14,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ute.dto.request.DiemRequest;
 import com.ute.dto.response.ApiResponse;
 import com.ute.dto.response.DiemChiTietAllSinhVienResponse;
 import com.ute.dto.response.DiemChiTietResponse;
+import com.ute.dto.response.DiemFullInfoResponse;
 import com.ute.dto.response.DiemResponse;
 import com.ute.dto.response.DiemTongQuanAllSinhVienResponse;
 import com.ute.dto.response.DiemTongQuanResponse;
 import com.ute.service.DiemService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -32,15 +36,13 @@ public class DiemController {
     private final DiemService diemService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('GIANGVIEN')")
-    public ApiResponse<List<DiemResponse>> getAllDiem() {
-        return new ApiResponse<>(true, "Lấy danh sách điểm thành công", diemService.getAllDiem());
+    public ResponseEntity<List<DiemFullInfoResponse>> getAllDiem() {
+        return ResponseEntity.ok(diemService.getAllDiem());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('GIANGVIEN')")
-    public ApiResponse<DiemResponse> getDiemById(@PathVariable String id) {
-        return new ApiResponse<>(true, "Lấy điểm thành công", diemService.getDiemById(id));
+    public ResponseEntity<DiemResponse> getDiemById(@PathVariable String id) {
+        return ResponseEntity.ok(diemService.getDiemById(id));
     }
 
     @GetMapping("/sinhvien/{maSinhVien}")
@@ -99,5 +101,49 @@ public class DiemController {
     public ApiResponse<Void> deleteDiem(@PathVariable String id) {
         diemService.deleteDiem(id);
         return new ApiResponse<>(true, "Xóa điểm thành công", null);
+    }
+
+    // ==================== API CHO GIẢNG VIÊN ====================
+
+    /**
+     * Nhập điểm cho sinh viên
+     */
+    @PostMapping("/nhap")
+    @PreAuthorize("hasRole('GIANGVIEN')")
+    public ApiResponse<DiemResponse> nhapDiem(@Valid @RequestBody DiemRequest request) {
+        try {
+            DiemResponse response = diemService.nhapDiem(request);
+            return new ApiResponse<>(true, "Nhập điểm thành công", response);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, e.getMessage(), null);
+        }
+    }
+
+    /**
+     * Cập nhật điểm cho sinh viên
+     */
+    @PutMapping("/capnhat/{id}")
+    @PreAuthorize("hasRole('GIANGVIEN')")
+    public ApiResponse<DiemResponse> capNhatDiem(@PathVariable String id, @Valid @RequestBody DiemRequest request) {
+        try {
+            DiemResponse response = diemService.capNhatDiem(id, request);
+            return new ApiResponse<>(true, "Cập nhật điểm thành công", response);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, e.getMessage(), null);
+        }
+    }
+
+    /**
+     * Lấy điểm của sinh viên trong lớp học phần
+     */
+    @GetMapping("/lophocphan/{maLopHP}/diem")
+    @PreAuthorize("hasRole('GIANGVIEN') or hasRole('ADMIN')")
+    public ApiResponse<List<DiemResponse>> getDiemTrongLop(@PathVariable String maLopHP) {
+        try {
+            List<DiemResponse> list = diemService.getDiemByLopHocPhan(maLopHP);
+            return new ApiResponse<>(true, "Lấy điểm trong lớp thành công", list);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, e.getMessage(), null);
+        }
     }
 } 

@@ -8,11 +8,15 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ute.dto.request.DiemRequest;
 import com.ute.dto.response.DiemChiTietAllSinhVienResponse;
 import com.ute.dto.response.DiemChiTietResponse;
+import com.ute.dto.response.DiemFullInfoResponse;
 import com.ute.dto.response.DiemResponse;
 import com.ute.dto.response.DiemTongQuanAllSinhVienResponse;
+import com.ute.dto.response.DiemTongQuanLopResponse;
 import com.ute.dto.response.DiemTongQuanResponse;
+import com.ute.dto.response.SinhVienTrongLopResponse;
 import com.ute.dto.response.TongKetHocKyResponse;
 import com.ute.entity.Diem;
 import com.ute.entity.DiemId;
@@ -20,6 +24,7 @@ import com.ute.entity.KeHoachCoSinhVien;
 import com.ute.entity.KeHoachCoSinhVienId;
 import com.ute.repository.DiemRepository;
 import com.ute.repository.KeHoachCoSinhVienRepository;
+import com.ute.repository.SinhVienRepository;
 import com.ute.service.DiemService;
 
 import lombok.RequiredArgsConstructor;
@@ -29,17 +34,22 @@ import lombok.RequiredArgsConstructor;
 public class DiemServiceImpl implements DiemService {
     private final DiemRepository diemRepository;
     private final KeHoachCoSinhVienRepository keHoachCoSinhVienRepository;
+    private final SinhVienRepository sinhVienRepository;
 
     @Override
-    public List<DiemResponse> getAllDiem() {
-        return diemRepository.findAll().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public List<DiemFullInfoResponse> getAllDiem() {
+        return diemRepository.findAllDiemFullInfo();
     }
 
     @Override
     public DiemResponse getDiemById(String id) {
-        return diemRepository.findById(id)
+        // Tách id thành maSinhVien và maLopHP
+        String[] parts = id.split("-");
+        if (parts.length != 2) {
+            return null;
+        }
+        DiemId diemId = new DiemId(parts[0], parts[1]);
+        return diemRepository.findById(diemId)
                 .map(this::mapToResponse)
                 .orElse(null);
     }
@@ -65,23 +75,46 @@ public class DiemServiceImpl implements DiemService {
         // Tạo DiemId từ maSinhVien và maLopHP
         DiemId id = new DiemId(diemDto.getMaSinhVien(), diemDto.getMaLopHP());
         diem.setId(id);
-        // Map các trường khác nếu có
-        // ...
+        
+        // Map các trường khác
+        diem.setDiemChuyenCan(diemDto.getDiemChuyenCan());
+        diem.setDiemGiuaKy(diemDto.getDiemGiuaKy());
+        diem.setDiemCuoiKy(diemDto.getDiemCuoiKy());
+        diem.setDiemTongKet(diemDto.getDiemTongKet());
+        diem.setGhiChu(diemDto.getGhiChu());
+        
         return mapToResponse(diemRepository.save(diem));
     }
 
     @Override
     @Transactional
     public DiemResponse updateDiem(String id, DiemResponse diemDto) {
-        Diem diem = diemRepository.findById(id).orElseThrow();
-        // ... cập nhật các trường từ diemDto
+        String[] parts = id.split("-");
+        if (parts.length != 2) {
+            throw new RuntimeException("ID không hợp lệ");
+        }
+        DiemId diemId = new DiemId(parts[0], parts[1]);
+        Diem diem = diemRepository.findById(diemId).orElseThrow();
+        
+        // Cập nhật các trường từ diemDto
+        diem.setDiemChuyenCan(diemDto.getDiemChuyenCan());
+        diem.setDiemGiuaKy(diemDto.getDiemGiuaKy());
+        diem.setDiemCuoiKy(diemDto.getDiemCuoiKy());
+        diem.setDiemTongKet(diemDto.getDiemTongKet());
+        diem.setGhiChu(diemDto.getGhiChu());
+        
         return mapToResponse(diemRepository.save(diem));
     }
 
     @Override
     @Transactional
     public void deleteDiem(String id) {
-        diemRepository.deleteById(id);
+        String[] parts = id.split("-");
+        if (parts.length != 2) {
+            throw new RuntimeException("ID không hợp lệ");
+        }
+        DiemId diemId = new DiemId(parts[0], parts[1]);
+        diemRepository.deleteById(diemId);
     }
 
     @Override
@@ -325,23 +358,210 @@ public class DiemServiceImpl implements DiemService {
     }
 
     private DiemResponse mapToResponse(Diem diem) {
-        DiemResponse dto = new DiemResponse();
-        // Lấy mã điểm là ghép từ mã sinh viên + mã lớp học phần (hoặc để null nếu không cần)
-        dto.setMaDiem(diem.getId() != null ? diem.getId().getMaSinhVien() + "-" + diem.getId().getMaLopHP() : null);
-        dto.setMaSinhVien(diem.getId() != null ? diem.getId().getMaSinhVien() : null);
-        dto.setMaLopHP(diem.getId() != null ? diem.getId().getMaLopHP() : null);
-        if (diem.getSinhVien() != null) {
-            dto.setHoTenSinhVien(diem.getSinhVien().getHoTenSinhVien());
+        DiemResponse response = new DiemResponse();
+        response.setMaSinhVien(diem.getSinhVien().getMaSinhVien());
+        response.setHoTenSinhVien(diem.getSinhVien().getHoTenSinhVien());
+        response.setMaLopHP(diem.getLopHocPhan().getMaLopHP());
+        response.setDiemGiuaKy(diem.getDiemGiuaKy());
+        response.setDiemCuoiKy(diem.getDiemCuoiKy());
+
+        if (diem.getDiemGiuaKy() != null && diem.getDiemCuoiKy() != null) {
+            float diemTongKet = diem.getDiemGiuaKy() * 0.4f + diem.getDiemCuoiKy() * 0.6f;
+            response.setDiemTongKet(diemTongKet);
         }
-        if (diem.getLopHocPhan() != null) {
-            dto.setTenLopHP(diem.getLopHocPhan().getTenLopHP());
-            if (diem.getLopHocPhan().getHocPhan() != null) {
-                dto.setTenMon(diem.getLopHocPhan().getHocPhan().getTenHocPhan());
-                dto.setSoTinChi(diem.getLopHocPhan().getHocPhan().getSoTinChi() != null ? diem.getLopHocPhan().getHocPhan().getSoTinChi() : 0);
+
+        return response;
+    }
+
+    // ==================== CÁC METHOD MỚI CHO GIẢNG VIÊN ====================
+
+    @Override
+    public List<SinhVienTrongLopResponse> getSinhVienTrongLop(String maLopHP) {
+        List<Diem> diemList = diemRepository.findByLopHocPhan_MaLopHP(maLopHP);
+        return diemList.stream()
+                .map(diem -> {
+                    SinhVienTrongLopResponse response = new SinhVienTrongLopResponse();
+                    if (diem.getSinhVien() != null) {
+                        response.setMaSinhVien(diem.getSinhVien().getMaSinhVien());
+                        response.setHoTenSinhVien(diem.getSinhVien().getHoTenSinhVien());
+                        response.setEmail(diem.getSinhVien().getEmail());
+                        response.setSoDienThoai(diem.getSinhVien().getSoDienThoai());
+                        response.setGioiTinh(diem.getSinhVien().getGioiTinh());
+                        response.setDiaChi(diem.getSinhVien().getDiaChi());
+                        
+                        if (diem.getSinhVien().getLop() != null) {
+                            response.setMaLop(diem.getSinhVien().getLop().getMaLop());
+                            response.setTenLop(diem.getSinhVien().getLop().getTenLop());
+                            
+                            if (diem.getSinhVien().getLop().getKhoa() != null) {
+                                response.setMaKhoa(diem.getSinhVien().getLop().getKhoa().getMaKhoa());
+                                response.setTenKhoa(diem.getSinhVien().getLop().getKhoa().getTenKhoa());
+                            }
+                        }
+                    }
+                    return response;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public DiemResponse nhapDiem(DiemRequest request) {
+        // Kiểm tra xem điểm đã tồn tại chưa
+        DiemId diemId = new DiemId(request.getMaSinhVien(), request.getMaLopHP());
+        Diem existingDiem = diemRepository.findById(diemId).orElse(null);
+        
+        if (existingDiem != null) {
+            throw new RuntimeException("Điểm của sinh viên này đã tồn tại trong lớp học phần");
+        }
+        
+        // Tạo điểm mới
+        Diem diem = new Diem();
+        diem.setId(diemId);
+        diem.setDiemChuyenCan(request.getDiemChuyenCan());
+        diem.setDiemGiuaKy(request.getDiemGiuaKy());
+        diem.setDiemCuoiKy(request.getDiemCuoiKy());
+        diem.setGhiChu(request.getGhiChu());
+        
+        // Tính điểm tổng kết (có thể thêm logic tính toán dựa trên hệ số)
+        float diemTongKet = calculateDiemTongKet(request.getDiemChuyenCan(), request.getDiemGiuaKy(), request.getDiemCuoiKy());
+        diem.setDiemTongKet(diemTongKet);
+        
+        return mapToResponse(diemRepository.save(diem));
+    }
+
+    @Override
+    @Transactional
+    public DiemResponse capNhatDiem(String id, DiemRequest request) {
+        DiemId diemId = new DiemId(request.getMaSinhVien(), request.getMaLopHP());
+        Diem diem = diemRepository.findById(diemId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy điểm cần cập nhật"));
+        
+        diem.setDiemChuyenCan(request.getDiemChuyenCan());
+        diem.setDiemGiuaKy(request.getDiemGiuaKy());
+        diem.setDiemCuoiKy(request.getDiemCuoiKy());
+        diem.setGhiChu(request.getGhiChu());
+        
+        // Tính lại điểm tổng kết
+        float diemTongKet = calculateDiemTongKet(request.getDiemChuyenCan(), request.getDiemGiuaKy(), request.getDiemCuoiKy());
+        diem.setDiemTongKet(diemTongKet);
+        
+        return mapToResponse(diemRepository.save(diem));
+    }
+
+    @Override
+    public DiemTongQuanLopResponse getTongQuanDiemLop(String maLopHP) {
+        List<Diem> diemList = diemRepository.findByLopHocPhan_MaLopHP(maLopHP);
+        DiemTongQuanLopResponse response = new DiemTongQuanLopResponse();
+        
+        if (!diemList.isEmpty() && diemList.get(0).getLopHocPhan() != null) {
+            response.setMaLopHP(maLopHP);
+            response.setTenLopHP(diemList.get(0).getLopHocPhan().getTenLopHP());
+            
+            if (diemList.get(0).getLopHocPhan().getHocPhan() != null) {
+                response.setTenHocPhan(diemList.get(0).getLopHocPhan().getHocPhan().getTenHocPhan());
+                response.setSoTinChi(diemList.get(0).getLopHocPhan().getHocPhan().getSoTinChi());
             }
         }
-        dto.setDiem(diem.getDiemTongKet() != null ? diem.getDiemTongKet() : 0);
-        // TODO: Map các trường xếp loại, học kỳ, năm học nếu có
-        return dto;
+        
+        response.setTongSoSinhVien(diemList.size());
+        
+        List<Diem> diemCoDiem = diemList.stream()
+                .filter(d -> d.getDiemTongKet() != null)
+                .collect(Collectors.toList());
+        
+        response.setSoSinhVienCoDiem(diemCoDiem.size());
+        
+        if (!diemCoDiem.isEmpty()) {
+            double diemTrungBinh = diemCoDiem.stream()
+                    .mapToDouble(Diem::getDiemTongKet)
+                    .average()
+                    .orElse(0.0);
+            response.setDiemTrungBinhLop(diemTrungBinh);
+            
+            double diemCaoNhat = diemCoDiem.stream()
+                    .mapToDouble(Diem::getDiemTongKet)
+                    .max()
+                    .orElse(0.0);
+            response.setDiemCaoNhat(diemCaoNhat);
+            
+            double diemThapNhat = diemCoDiem.stream()
+                    .mapToDouble(Diem::getDiemTongKet)
+                    .min()
+                    .orElse(0.0);
+            response.setDiemThapNhat(diemThapNhat);
+            
+            long soSinhVienDat = diemCoDiem.stream()
+                    .filter(d -> d.getDiemTongKet() >= 5.0)
+                    .count();
+            response.setSoSinhVienDat((int) soSinhVienDat);
+            response.setSoSinhVienKhongDat(diemCoDiem.size() - (int) soSinhVienDat);
+            
+            // Thống kê theo khoảng điểm
+            response.setThongKeDiem(calculateThongKeDiem(diemCoDiem));
+        }
+        
+        return response;
+    }
+
+    @Override
+    public byte[] xuatBaoCaoDiem(String maLopHP) {
+        // TODO: Implement xuất báo cáo điểm ra file Excel hoặc PDF
+        // Có thể sử dụng Apache POI cho Excel hoặc iText cho PDF
+        return new byte[0];
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    private float calculateDiemTongKet(Float diemChuyenCan, Float diemGiuaKy, Float diemCuoiKy) {
+        // Logic tính điểm tổng kết (có thể thay đổi theo yêu cầu)
+        // Ví dụ: Chuyên cần 10%, Giữa kỳ 30%, Cuối kỳ 60%
+        float tongKet = 0.0f;
+        
+        if (diemChuyenCan != null) tongKet += diemChuyenCan * 0.1f;
+        if (diemGiuaKy != null) tongKet += diemGiuaKy * 0.3f;
+        if (diemCuoiKy != null) tongKet += diemCuoiKy * 0.6f;
+        
+        return Math.round(tongKet * 100.0f) / 100.0f; // Làm tròn 2 chữ số thập phân
+    }
+
+    private List<DiemTongQuanLopResponse.ThongKeDiemResponse> calculateThongKeDiem(List<Diem> diemList) {
+        List<DiemTongQuanLopResponse.ThongKeDiemResponse> thongKe = new ArrayList<>();
+        
+        // Định nghĩa các khoảng điểm
+        String[] khoangDiem = {"0-2", "2-4", "4-5", "5-6.5", "6.5-8", "8-9", "9-10"};
+        double[] gioiHan = {0, 2, 4, 5, 6.5, 8, 9, 10};
+        
+        for (int i = 0; i < khoangDiem.length; i++) {
+            DiemTongQuanLopResponse.ThongKeDiemResponse tk = new DiemTongQuanLopResponse.ThongKeDiemResponse();
+            tk.setKhoangDiem(khoangDiem[i]);
+            
+            final double min = gioiHan[i];
+            final double max = gioiHan[i + 1];
+            
+            long soLuong = diemList.stream()
+                    .filter(d -> d.getDiemTongKet() >= min && d.getDiemTongKet() < max)
+                    .count();
+            tk.setSoLuong((int) soLuong);
+            
+            if (diemList.size() > 0) {
+                tk.setTyLe((double) soLuong / diemList.size() * 100);
+            } else {
+                tk.setTyLe(0.0);
+            }
+            
+            thongKe.add(tk);
+        }
+        
+        return thongKe;
+    }
+
+    private DiemId parseDiemId(String id) {
+        // Tách id thành maSinhVien và maLopHP
+        String[] parts = id.split("-");
+        if (parts.length != 2) {
+            throw new RuntimeException("ID không hợp lệ");
+        }
+        return new DiemId(parts[0], parts[1]);
     }
 } 
