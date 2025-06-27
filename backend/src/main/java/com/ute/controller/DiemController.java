@@ -23,6 +23,7 @@ import com.ute.dto.response.DiemFullInfoResponse;
 import com.ute.dto.response.DiemResponse;
 import com.ute.dto.response.DiemTongQuanAllSinhVienResponse;
 import com.ute.dto.response.DiemTongQuanResponse;
+import com.ute.dto.response.TongQuanGiangVienResponse;
 import com.ute.service.DiemService;
 
 import jakarta.validation.Valid;
@@ -146,5 +147,12 @@ public class DiemController {
         } catch (Exception e) {
             return new ApiResponse<>(false, e.getMessage(), null);
         }
+    }
+
+    @GetMapping("/giangvien/{maGiangVien}/tongquan")
+    @PreAuthorize("hasRole('GIANGVIEN')")
+    public ApiResponse<TongQuanGiangVienResponse> tongQuanGiangVien(@PathVariable String maGiangVien) {
+        TongQuanGiangVienResponse response = diemService.tongQuanGiangVien(maGiangVien);
+        return new ApiResponse<>(true, "Tổng quan điểm cho giảng viên", response);
     }
 } 

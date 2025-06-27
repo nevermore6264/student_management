@@ -2,18 +2,21 @@ package com.ute.service.impl;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.alibaba.excel.EasyExcel;
-import com.ute.dto.response.DiemExportResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.alibaba.excel.EasyExcel;
 import com.ute.dto.request.DiemRequest;
 import com.ute.dto.response.DiemChiTietAllSinhVienResponse;
 import com.ute.dto.response.DiemChiTietResponse;
+import com.ute.dto.response.DiemExportResponse;
 import com.ute.dto.response.DiemFullInfoResponse;
 import com.ute.dto.response.DiemResponse;
 import com.ute.dto.response.DiemTongQuanAllSinhVienResponse;
@@ -21,12 +24,15 @@ import com.ute.dto.response.DiemTongQuanLopResponse;
 import com.ute.dto.response.DiemTongQuanResponse;
 import com.ute.dto.response.SinhVienTrongLopResponse;
 import com.ute.dto.response.TongKetHocKyResponse;
+import com.ute.dto.response.TongQuanGiangVienResponse;
 import com.ute.entity.Diem;
 import com.ute.entity.DiemId;
 import com.ute.entity.KeHoachCoSinhVien;
 import com.ute.entity.KeHoachCoSinhVienId;
+import com.ute.entity.LopHocPhan;
 import com.ute.repository.DiemRepository;
 import com.ute.repository.KeHoachCoSinhVienRepository;
+import com.ute.repository.LopHocPhanRepository;
 import com.ute.repository.SinhVienRepository;
 import com.ute.service.DiemService;
 
@@ -38,6 +44,7 @@ public class DiemServiceImpl implements DiemService {
     private final DiemRepository diemRepository;
     private final KeHoachCoSinhVienRepository keHoachCoSinhVienRepository;
     private final SinhVienRepository sinhVienRepository;
+    private final LopHocPhanRepository lopHocPhanRepository;
 
     @Override
     public List<DiemFullInfoResponse> getAllDiem() {
@@ -528,6 +535,107 @@ public class DiemServiceImpl implements DiemService {
             e.printStackTrace();
             return new byte[0];
         }
+    }
+
+    @Override
+    public TongQuanGiangVienResponse tongQuanGiangVien(String maGiangVien) {
+        TongQuanGiangVienResponse res = new TongQuanGiangVienResponse();
+
+        // 1. Lấy tất cả lớp học phần mà giảng viên này phụ trách
+        List<LopHocPhan> lopHocPhans = lopHocPhanRepository.findByGiangVien(maGiangVien);
+        res.setTongSoLop(lopHocPhans.size());
+
+        // 2. Lấy tất cả sinh viên trong các lớp học phần này
+        int tongSoSinhVien = 0;
+        int tongSoHocPhan = 0;
+        int soDiemDaNhap = 0;
+        int soDiemChuaNhap = 0;
+        double tongDiem = 0;
+        int tongSoDiem = 0;
+
+        Map<String, Integer> soLuongXepLoai = new HashMap<>();
+        List<TongQuanGiangVienResponse.BieuDoPhanBoDiem> bieuDo = new ArrayList<>();
+        List<TongQuanGiangVienResponse.LopInfo> cacLop = new ArrayList<>();
+        List<TongQuanGiangVienResponse.SinhVienChuaNhapDiem> svChuaNhap = new ArrayList<>();
+
+        // Khởi tạo phân bố điểm
+        int[] khoangDiem = new int[5]; // 0-4, 4-5.5, 5.5-7, 7-8.5, 8.5-10
+
+        Set<String> hocPhanSet = new HashSet<>();
+
+        for (LopHocPhan lop : lopHocPhans) {
+            List<Diem> diemList = diemRepository.findByLopHocPhan_MaLopHP(lop.getMaLopHP());
+            TongQuanGiangVienResponse.LopInfo lopInfo = new TongQuanGiangVienResponse.LopInfo();
+            lopInfo.setMaLopHP(lop.getMaLopHP());
+            lopInfo.setTenLopHP(lop.getTenLopHP());
+            lopInfo.setSoSinhVien(diemList.size());
+
+            int daNhap = 0;
+            int chuaNhap = 0;
+
+            for (Diem diem : diemList) {
+                tongSoSinhVien++;
+                hocPhanSet.add(lop.getHocPhan().getMaHocPhan());
+
+                if (diem.getDiemTongKet() != null) {
+                    daNhap++;
+                    tongDiem += diem.getDiemTongKet();
+                    tongSoDiem++;
+
+                    // Xếp loại
+                    String xepLoai = xepLoaiChu(diem.getDiemTongKet());
+                    soLuongXepLoai.put(xepLoai, soLuongXepLoai.getOrDefault(xepLoai, 0) + 1);
+
+                    // Phân bố điểm
+                    double d = diem.getDiemTongKet();
+                    if (d < 4) khoangDiem[0]++;
+                    else if (d < 5.5) khoangDiem[1]++;
+                    else if (d < 7) khoangDiem[2]++;
+                    else if (d < 8.5) khoangDiem[3]++;
+                    else khoangDiem[4]++;
+                } else {
+                    chuaNhap++;
+                    // Thêm vào danh sách sinh viên chưa nhập điểm
+                    TongQuanGiangVienResponse.SinhVienChuaNhapDiem sv = new TongQuanGiangVienResponse.SinhVienChuaNhapDiem();
+                    sv.setMaSinhVien(diem.getSinhVien().getMaSinhVien());
+                    sv.setTenSinhVien(diem.getSinhVien().getHoTenSinhVien());
+                    sv.setMaLopHP(lop.getMaLopHP());
+                    svChuaNhap.add(sv);
+                }
+            }
+            soDiemDaNhap += daNhap;
+            soDiemChuaNhap += chuaNhap;
+            lopInfo.setTrangThaiNhapDiem(chuaNhap == 0 ? "Đã nhập" : "Chưa nhập");
+            cacLop.add(lopInfo);
+        }
+
+        res.setTongSoSinhVien(tongSoSinhVien);
+        res.setTongSoHocPhan(hocPhanSet.size());
+        res.setSoDiemDaNhap(soDiemDaNhap);
+        res.setSoDiemChuaNhap(soDiemChuaNhap);
+        res.setTyLeDat(tongSoDiem == 0 ? 0 : ((double) (soLuongXepLoai.getOrDefault("A",0) + soLuongXepLoai.getOrDefault("B",0) + soLuongXepLoai.getOrDefault("C",0)) / (double) tongSoDiem));
+        res.setTyLeKhongDat(tongSoDiem == 0 ? 0 : ((double) (soLuongXepLoai.getOrDefault("D",0) + soLuongXepLoai.getOrDefault("F",0)) / (double) tongSoDiem));
+        res.setDiemTrungBinhTatCaLop(tongSoDiem == 0 ? 0 : Math.round(tongDiem / tongSoDiem * 100.0) / 100.0);
+        res.setSoLuongXepLoai(soLuongXepLoai);
+
+        // Phân bố điểm
+        String[] khoang = {"0-4", "4-5.5", "5.5-7", "7-8.5", "8.5-10"};
+        for (int i = 0; i < khoang.length; i++) {
+            res.getBieuDoPhanBoDiem().add(new TongQuanGiangVienResponse.BieuDoPhanBoDiem(khoang[i], khoangDiem[i]));
+        }
+        res.setCacLop(cacLop);
+        res.setSinhVienChuaNhapDiem(svChuaNhap);
+
+        return res;
+    }
+
+    // Hàm xếp loại chữ
+    private String xepLoaiChu(double diem) {
+        if (diem >= 8.5) return "A";
+        if (diem >= 7) return "B";
+        if (diem >= 5.5) return "C";
+        if (diem >= 4) return "D";
+        return "F";
     }
 
     // ==================== HELPER METHODS ====================

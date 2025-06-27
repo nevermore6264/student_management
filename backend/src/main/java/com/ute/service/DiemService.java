@@ -11,6 +11,7 @@ import com.ute.dto.response.DiemTongQuanAllSinhVienResponse;
 import com.ute.dto.response.DiemTongQuanLopResponse;
 import com.ute.dto.response.DiemTongQuanResponse;
 import com.ute.dto.response.SinhVienTrongLopResponse;
+import com.ute.dto.response.TongQuanGiangVienResponse;
 
 public interface DiemService {
     List<DiemFullInfoResponse> getAllDiem();
@@ -35,4 +36,5 @@ public interface DiemService {
     DiemResponse capNhatDiem(String maSinhVien, String maLopHP, DiemRequest request);
     DiemTongQuanLopResponse getTongQuanDiemLop(String maLopHP);
     byte[] xuatBaoCaoDiem(String maLopHP);
+    TongQuanGiangVienResponse tongQuanGiangVien(String maGiangVien);
 } 
