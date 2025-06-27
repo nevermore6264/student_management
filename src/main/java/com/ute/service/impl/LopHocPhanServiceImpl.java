@@ -1,5 +1,11 @@
 package com.ute.service.impl;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.ute.dto.request.LopHocPhanRequest;
 import com.ute.dto.response.LopHocPhanResponse;
 import com.ute.entity.HocPhan;
@@ -9,12 +15,8 @@ import com.ute.repository.DiemRepository;
 import com.ute.repository.HocPhanRepository;
 import com.ute.repository.LopHocPhanRepository;
 import com.ute.service.LopHocPhanService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -111,10 +113,17 @@ public class LopHocPhanServiceImpl implements LopHocPhanService {
         response.setThoiGianKetThuc(lopHocPhan.getThoiGianKetThuc());
         response.setPhongHoc(lopHocPhan.getPhongHoc());
         response.setTrangThai(lopHocPhan.getTrangThai());
+        
+        // Tính sĩ số hiện tại (số sinh viên đã đăng ký)
+        int siSoHienTai = dangKyHocPhanRepository.findByLopHocPhan_MaLopHP(lopHocPhan.getMaLopHP()).size();
+        response.setSiSoHienTai(siSoHienTai);
+        
         if (lopHocPhan.getHocPhan() != null) {
             response.setMaHocPhan(lopHocPhan.getHocPhan().getMaHocPhan());
             response.setTenHocPhan(lopHocPhan.getHocPhan().getTenHocPhan());
+            response.setSoTinChi(lopHocPhan.getHocPhan().getSoTinChi());
         }
+        
         return response;
     }
 } 

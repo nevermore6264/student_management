@@ -9,6 +9,7 @@ public class LopHocPhanResponse {
     private String maLopHP;
     private String tenLopHP;
     private Integer soLuong;
+    private Integer siSoHienTai;
     private String giangVien;
     private LocalDateTime thoiGianBatDau;
     private LocalDateTime thoiGianKetThuc;
@@ -16,4 +17,5 @@ public class LopHocPhanResponse {
     private Boolean trangThai;
     private String maHocPhan;
     private String tenHocPhan;
+    private Integer soTinChi;
 } 
