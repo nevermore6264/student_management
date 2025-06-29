@@ -1,7 +1,6 @@
 package com.ute.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,7 +13,7 @@ import com.ute.service.AdminReportService;
 @RestController
 @RequestMapping("/api/admin/reports")
 @CrossOrigin(origins = "*")
-@PreAuthorize("hasRole('ADMIN')")
+// @PreAuthorize("hasRole('ADMIN')") // Uncomment khi cần bảo mật
 public class AdminReportController {
 
     @Autowired
@@ -24,6 +23,7 @@ public class AdminReportController {
      * Lấy báo cáo tổng hợp cho admin
      */
     @GetMapping("/tonghop")
+    // @PreAuthorize("hasRole('ADMIN')") // Uncomment khi cần bảo mật
     public ApiResponse<AdminReportResponse> getTongHopBaoCao() {
         try {
             AdminReportResponse response = adminReportService.getTongHopBaoCao();
