@@ -41,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         NguoiDung nguoiDung = new NguoiDung();
-        nguoiDung.setMaNguoiDung("ND" + UUID.randomUUID().toString().substring(0, 8));
+        nguoiDung.setMaNguoiDung("SV" + UUID.randomUUID().toString().substring(0, 8));
         nguoiDung.setTenNguoiDung(registerRequest.getTenNguoiDung());
         nguoiDung.setEmail(registerRequest.getEmail());
         nguoiDung.setSoDienThoai(registerRequest.getSoDienThoai());

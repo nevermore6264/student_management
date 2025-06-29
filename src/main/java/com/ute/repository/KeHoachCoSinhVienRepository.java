@@ -11,4 +11,5 @@ import com.ute.entity.KeHoachCoSinhVienId;
 @Repository
 public interface KeHoachCoSinhVienRepository extends JpaRepository<KeHoachCoSinhVien, KeHoachCoSinhVienId> {
     List<KeHoachCoSinhVien> findByHocPhan_MaHocPhan(String maHocPhan);
+    List<KeHoachCoSinhVien> findBySinhVien_MaSinhVien(String maSinhVien);
 } 

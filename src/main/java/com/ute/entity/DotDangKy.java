@@ -33,7 +33,7 @@ public class DotDangKy {
     @JoinColumn(name = "maKhoa")
     private Khoa khoa;
 
-    @Column(name = "moTa", length = 50)
+    @Column(name = "moTa", length = 500)
     private String moTa;
 
     @Column(name = "trangThai")

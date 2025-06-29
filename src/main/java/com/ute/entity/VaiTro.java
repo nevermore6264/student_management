@@ -18,6 +18,6 @@ public class VaiTro {
     @Column(name = "tenVaiTro", length = 50)
     private String tenVaiTro;
 
-    @Column(name = "moTa", length = 100)
+    @Column(name = "moTa", length = 500)
     private String moTa;
 } 
