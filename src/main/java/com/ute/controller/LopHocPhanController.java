@@ -137,6 +137,19 @@ public class LopHocPhanController {
     }
 
     /**
+     * Get students in class (English endpoint)
+     */
+    @GetMapping("/{maLopHP}/students")
+    public ApiResponse<List<SinhVienTrongLopResponse>> getStudentsInClass(@PathVariable String maLopHP) {
+        try {
+            List<SinhVienTrongLopResponse> list = diemService.getSinhVienTrongLop(maLopHP);
+            return new ApiResponse<>(true, "Get students in class successfully", list);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, e.getMessage(), null);
+        }
+    }
+
+    /**
      * Lấy tổng quan điểm của lớp học phần
      */
     @GetMapping("/{maLopHP}/tongquan")
