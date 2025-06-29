@@ -78,6 +78,16 @@ public class LopHocPhanController {
         }
     }
 
+    @GetMapping("/dotdangky/{maDotDK}")
+    public ApiResponse<List<LopHocPhanResponse>> getLopHocPhanByDotDangKy(@PathVariable String maDotDK) {
+        try {
+            List<LopHocPhanResponse> list = lopHocPhanService.findByDotDangKy(maDotDK);
+            return new ApiResponse<>(true, "Lấy danh sách lớp học phần theo đợt đăng ký thành công", list);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, e.getMessage(), null);
+        }
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<LopHocPhanResponse> createLopHocPhan(@Valid @RequestBody LopHocPhanRequest request) {

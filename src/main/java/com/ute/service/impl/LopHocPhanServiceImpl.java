@@ -56,6 +56,13 @@ public class LopHocPhanServiceImpl implements LopHocPhanService {
     }
 
     @Override
+    public List<LopHocPhanResponse> findByDotDangKy(String maDotDK) {
+        return lopHocPhanRepository.findByDotDangKy_MaDotDK(maDotDK).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public LopHocPhanResponse createLopHocPhan(LopHocPhanRequest request) {
         HocPhan hocPhan = hocPhanRepository.findById(request.getMaHocPhan())

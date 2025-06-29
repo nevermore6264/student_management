@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -56,7 +55,7 @@ public class DotDangKyController {
     }
 
     @GetMapping("/period")
-    public ApiResponse<DotDangKyResponse> getDotDangKyByMaDotDK(@PathVariable("period") String maDotDK) {
+    public ApiResponse<DotDangKyResponse> getDotDangKyByMaDotDK(@RequestParam("period") String maDotDK) {
         try {
             DotDangKy dot = dotDangKyRepository.findByMaDotDK(maDotDK);
             
