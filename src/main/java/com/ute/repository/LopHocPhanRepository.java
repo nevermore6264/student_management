@@ -14,6 +14,9 @@ public interface LopHocPhanRepository extends JpaRepository<LopHocPhan, String> 
     List<LopHocPhan> findByHocPhan_MaHocPhan(String maHocPhan);
     List<LopHocPhan> findByGiangVien(String giangVien);
     
+    @Query("SELECT lhp FROM LopHocPhan lhp WHERE lhp.hocPhan.maHocPhan IN :maHocPhanList")
+    List<LopHocPhan> findByHocPhan_MaHocPhanIn(@Param("maHocPhanList") List<String> maHocPhanList);
+    
     @Query("SELECT DISTINCT lhp FROM LopHocPhan lhp " +
            "JOIN lhp.dangKyHocPhans dkhp " +
            "JOIN dkhp.phienDangKy pdk " +

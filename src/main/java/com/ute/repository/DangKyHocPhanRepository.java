@@ -3,6 +3,8 @@ package com.ute.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.ute.entity.DangKyHocPhan;
@@ -13,4 +15,7 @@ public interface DangKyHocPhanRepository extends JpaRepository<DangKyHocPhan, Da
     List<DangKyHocPhan> findByPhienDangKy_SinhVien_MaSinhVien(String maSinhVien);
     List<DangKyHocPhan> findByLopHocPhan_MaLopHP(String maLopHP);
     List<DangKyHocPhan> findByLopHocPhan_HocPhan_MaHocPhan(String maHocPhan);
+    
+    @Query("SELECT dkhp FROM DangKyHocPhan dkhp WHERE dkhp.lopHocPhan.maLopHP IN :maLopHPList")
+    List<DangKyHocPhan> findByLopHocPhan_MaLopHPIn(@Param("maLopHPList") List<String> maLopHPList);
 } 
