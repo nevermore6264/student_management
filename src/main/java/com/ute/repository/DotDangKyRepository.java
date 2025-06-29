@@ -13,4 +13,6 @@ public interface DotDangKyRepository extends JpaRepository<DotDangKy, String> {
     
     @Query("SELECT d FROM DotDangKy d WHERE d.trangThai = true ORDER BY d.ngayGioBatDau DESC")
     java.util.Optional<DotDangKy> findFirstCurrentDotDangKy();
+    
+    DotDangKy findByMaDotDK(String maDotDK);
 } 

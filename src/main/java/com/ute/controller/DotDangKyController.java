@@ -6,7 +6,9 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ute.dto.response.ApiResponse;
@@ -53,16 +55,14 @@ public class DotDangKyController {
         }
     }
 
-    @GetMapping("/hientai")
-    public ApiResponse<DotDangKyResponse> getDotDangKyHienTai() {
+    @GetMapping("/period")
+    public ApiResponse<DotDangKyResponse> getDotDangKyByMaDotDK(@PathVariable("period") String maDotDK) {
         try {
-            java.util.List<DotDangKy> dotDangKys = dotDangKyRepository.findCurrentDotDangKy();
+            DotDangKy dot = dotDangKyRepository.findByMaDotDK(maDotDK);
             
-            if (dotDangKys.isEmpty()) {
-                return new ApiResponse<>(false, "Không có đợt đăng ký hiện tại", null);
+            if (dot == null) {
+                return new ApiResponse<>(false, "Không tìm thấy đợt đăng ký với mã: " + maDotDK, null);
             }
-            
-            DotDangKy dot = dotDangKys.get(0); // Lấy đợt đăng ký đầu tiên (mới nhất)
             
             // Chuyển đổi sang DTO để tránh infinite loop
             DotDangKyResponse response = new DotDangKyResponse();
@@ -80,9 +80,9 @@ public class DotDangKyController {
                 response.setTenKhoa(dot.getKhoa().getTenKhoa());
             }
             
-            return new ApiResponse<>(true, "Lấy đợt đăng ký hiện tại thành công", response);
+            return new ApiResponse<>(true, "Lấy đợt đăng ký thành công", response);
         } catch (Exception e) {
-            return new ApiResponse<>(false, "Lỗi khi lấy đợt đăng ký hiện tại: " + e.getMessage(), null);
+            return new ApiResponse<>(false, "Lỗi khi lấy đợt đăng ký: " + e.getMessage(), null);
         }
     }
 } 
