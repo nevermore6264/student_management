@@ -63,4 +63,43 @@ INSERT INTO DANGKYHOCPHAN (maLopHP, maPhienDK, maSinhVien, ketQuaDangKy, thoiGia
 
 ('LHP202501006', 202501003, 'SV2021015', 1, '2025-08-01 08:45:00', 1), -- Lưu Văn Minh đăng ký Nhập môn Điện tử
 ('LHP202501008', 202501003, 'SV2021015', 1, '2025-08-01 09:30:00', 1), -- Lưu Văn Minh đăng ký Kỹ thuật số
-('LHP202501009', 202501003, 'SV2021015', 1, '2025-08-01 10:15:00', 1); -- Lưu Văn Minh đăng ký Vi xử lý 
+('LHP202501009', 202501003, 'SV2021015', 1, '2025-08-01 10:15:00', 1); -- Lưu Văn Minh đăng ký Vi xử lý
+
+-- Cập nhật thời gian đăng ký về khoảng tháng 6-7 năm 2025 để phù hợp với đợt đăng ký học kỳ 1
+-- Đợt đăng ký học kỳ 1: 2025-08-01 đến 2025-08-15, nhưng thực tế sinh viên thường đăng ký sớm hơn
+
+-- Cập nhật thời gian đăng ký cho sinh viên CNTT21A (maPhienDK = 202501001)
+UPDATE DANGKYHOCPHAN 
+SET thoiGianDangKy = CASE 
+    WHEN maSinhVien = 'SV2021001' THEN '2025-06-15 08:30:00'
+    WHEN maSinhVien = 'SV2021002' THEN '2025-06-16 09:15:00'
+    WHEN maSinhVien = 'SV2021003' THEN '2025-06-17 10:00:00'
+    WHEN maSinhVien = 'SV2021004' THEN '2025-06-18 08:45:00'
+    WHEN maSinhVien = 'SV2021005' THEN '2025-06-19 09:30:00'
+    ELSE thoiGianDangKy
+END
+WHERE maPhienDK = 202501001;
+
+-- Cập nhật thời gian đăng ký cho sinh viên CNTT21B (maPhienDK = 202501002)
+UPDATE DANGKYHOCPHAN 
+SET thoiGianDangKy = CASE 
+    WHEN maSinhVien = 'SV2021006' THEN '2025-06-20 08:30:00'
+    WHEN maSinhVien = 'SV2021007' THEN '2025-06-21 09:15:00'
+    WHEN maSinhVien = 'SV2021008' THEN '2025-06-22 10:00:00'
+    WHEN maSinhVien = 'SV2021009' THEN '2025-06-23 08:45:00'
+    WHEN maSinhVien = 'SV2021010' THEN '2025-06-24 09:30:00'
+    ELSE thoiGianDangKy
+END
+WHERE maPhienDK = 202501002;
+
+-- Cập nhật thời gian đăng ký cho sinh viên DT21A (maPhienDK = 202501003)
+UPDATE DANGKYHOCPHAN 
+SET thoiGianDangKy = CASE 
+    WHEN maSinhVien = 'SV2021011' THEN '2025-07-01 08:30:00'
+    WHEN maSinhVien = 'SV2021012' THEN '2025-07-02 09:15:00'
+    WHEN maSinhVien = 'SV2021013' THEN '2025-07-03 10:00:00'
+    WHEN maSinhVien = 'SV2021014' THEN '2025-07-04 08:45:00'
+    WHEN maSinhVien = 'SV2021015' THEN '2025-07-05 09:30:00'
+    ELSE thoiGianDangKy
+END
+WHERE maPhienDK = 202501003; 
