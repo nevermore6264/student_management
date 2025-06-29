@@ -3,6 +3,7 @@ package com.ute.service;
 import java.util.List;
 
 import com.ute.dto.request.KeHoachCoSinhVienRequest;
+import com.ute.dto.response.KeHoachChiTietResponse;
 import com.ute.dto.response.KeHoachCoSinhVienResponse;
 
 public interface KeHoachCoSinhVienService {
@@ -18,6 +19,12 @@ public interface KeHoachCoSinhVienService {
     
     // Lấy kế hoạch học tập theo ID
     KeHoachCoSinhVienResponse getKeHoachById(Integer maKeHoach, String maSinhVien, String maHocPhan);
+    
+    // Lấy chi tiết kế hoạch học tập (thông tin đầy đủ)
+    KeHoachChiTietResponse getKeHoachChiTiet(Integer maKeHoach, String maSinhVien, String maHocPhan);
+    
+    // Lấy tất cả chi tiết kế hoạch học tập của sinh viên
+    List<KeHoachChiTietResponse> getAllKeHoachChiTietBySinhVien(String maSinhVien);
     
     // Tạo kế hoạch học tập mới
     KeHoachCoSinhVienResponse createKeHoach(KeHoachCoSinhVienRequest request);

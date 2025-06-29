@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ute.dto.request.KeHoachCoSinhVienRequest;
 import com.ute.dto.response.ApiResponse;
+import com.ute.dto.response.KeHoachChiTietResponse;
 import com.ute.dto.response.KeHoachCoSinhVienResponse;
 import com.ute.service.KeHoachCoSinhVienService;
 
@@ -86,6 +87,37 @@ public class KeHoachCoSinhVienController {
         try {
             KeHoachCoSinhVienResponse response = keHoachCoSinhVienService.getKeHoachById(maKeHoach, maSinhVien, maHocPhan);
             return new ApiResponse<>(true, "Lấy thông tin kế hoạch học tập thành công", response);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, e.getMessage(), null);
+        }
+    }
+
+    /**
+     * Lấy chi tiết kế hoạch học tập (thông tin đầy đủ)
+     */
+    @GetMapping("/chitiet/{maKeHoach}/{maSinhVien}/{maHocPhan}")
+    @PreAuthorize("hasRole('SINHVIEN') or hasRole('GIANGVIEN') or hasRole('ADMIN')")
+    public ApiResponse<KeHoachChiTietResponse> getKeHoachChiTiet(
+            @PathVariable Integer maKeHoach,
+            @PathVariable String maSinhVien,
+            @PathVariable String maHocPhan) {
+        try {
+            KeHoachChiTietResponse response = keHoachCoSinhVienService.getKeHoachChiTiet(maKeHoach, maSinhVien, maHocPhan);
+            return new ApiResponse<>(true, "Lấy chi tiết kế hoạch học tập thành công", response);
+        } catch (Exception e) {
+            return new ApiResponse<>(false, e.getMessage(), null);
+        }
+    }
+
+    /**
+     * Lấy tất cả chi tiết kế hoạch học tập của sinh viên
+     */
+    @GetMapping("/chitiet/sinhvien/{maSinhVien}")
+    @PreAuthorize("hasRole('SINHVIEN') or hasRole('GIANGVIEN') or hasRole('ADMIN')")
+    public ApiResponse<List<KeHoachChiTietResponse>> getAllKeHoachChiTietBySinhVien(@PathVariable String maSinhVien) {
+        try {
+            List<KeHoachChiTietResponse> list = keHoachCoSinhVienService.getAllKeHoachChiTietBySinhVien(maSinhVien);
+            return new ApiResponse<>(true, "Lấy tất cả chi tiết kế hoạch học tập của sinh viên thành công", list);
         } catch (Exception e) {
             return new ApiResponse<>(false, e.getMessage(), null);
         }
