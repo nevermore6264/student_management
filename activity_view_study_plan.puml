@@ -1,0 +1,19 @@
+@startuml
+' Activity Diagram: Xem kế hoạch học tập của sinh viên
+|Sinh viên|
+start
+:Chọn chức năng xem kế hoạch học tập;
+|Hệ thống|
+:Nhận yêu cầu lấy kế hoạch học tập;
+:Truy vấn kế hoạch học tập theo mã sinh viên;
+if (Có dữ liệu?) then (Có)
+  :Trả về danh sách kế hoạch học tập;
+  |Sinh viên|
+  :Hiển thị kế hoạch học tập;
+else (Không)
+  :Trả về thông báo không có dữ liệu;
+  |Sinh viên|
+  :Hiển thị thông báo không có dữ liệu;
+endif
+stop
+@enduml

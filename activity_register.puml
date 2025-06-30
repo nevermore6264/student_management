@@ -1,0 +1,21 @@
+@startuml
+' Activity Diagram: Đăng ký vào hệ thống (Sinh viên)
+|Sinh viên|
+start
+:Nhập thông tin đăng ký (họ tên, email, mật khẩu...);
+:Nhấn nút Đăng ký;
+|Hệ thống|
+:Nhận yêu cầu đăng ký;
+:Kiểm tra thông tin hợp lệ?;
+if (Thông tin hợp lệ?) then (Có)
+  :Tạo tài khoản mới;
+  :Gửi thông báo thành công;
+  |Sinh viên|
+  :Nhận thông báo đăng ký thành công;
+else (Không)
+  :Gửi thông báo lỗi;
+  |Sinh viên|
+  :Hiển thị thông báo lỗi;
+endif
+stop
+@enduml

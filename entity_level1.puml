@@ -1,0 +1,66 @@
+@startuml
+' Sơ đồ class mức 1 cho các entity chính
+' Chỉ thể hiện các class entity và quan hệ chính (ManyToOne, OneToMany, OneToOne, ManyToMany)
+
+' Entity classes
+class VaiTro
+class ThoiKhoaBieu
+class SinhVien
+class PhienDangKy
+class NguoiDung
+class LopHocPhan
+class Lop
+class LichSuDangKy
+class Khoa
+class KeHoachCoSinhVien
+class HocPhan
+class HeSoDiem
+class GiangVien
+class DotDangKy
+class Diem
+class DangKyHocPhan
+
+' Quan hệ ManyToOne (chỉ vẽ chiều mũi tên)
+ThoiKhoaBieu --> LopHocPhan
+SinhVien --> Lop
+PhienDangKy --> DotDangKy
+PhienDangKy --> HocPhan
+LopHocPhan --> HocPhan
+Lop --> Khoa
+LichSuDangKy --> SinhVien
+LichSuDangKy --> LopHocPhan
+KeHoachCoSinhVien --> SinhVien
+KeHoachCoSinhVien --> LopHocPhan
+HocPhan --> Khoa
+GiangVien --> Khoa
+DotDangKy --> Khoa
+Diem --> SinhVien
+Diem --> LopHocPhan
+DangKyHocPhan --> SinhVien
+DangKyHocPhan --> LopHocPhan
+
+' Quan hệ OneToMany (ngược chiều ManyToOne)
+LopHocPhan "1" --o "*" ThoiKhoaBieu
+Lop "1" --o "*" SinhVien
+DotDangKy "1" --o "*" PhienDangKy
+HocPhan "1" --o "*" LopHocPhan
+Khoa "1" --o "*" Lop
+SinhVien "1" --o "*" LichSuDangKy
+LopHocPhan "1" --o "*" LichSuDangKy
+SinhVien "1" --o "*" KeHoachCoSinhVien
+LopHocPhan "1" --o "*" KeHoachCoSinhVien
+Khoa "1" --o "*" HocPhan
+Khoa "1" --o "*" GiangVien
+Khoa "1" --o "*" DotDangKy
+SinhVien "1" --o "*" Diem
+LopHocPhan "1" --o "*" Diem
+SinhVien "1" --o "*" DangKyHocPhan
+LopHocPhan "1" --o "*" DangKyHocPhan
+
+' Quan hệ OneToOne
+HocPhan -- HeSoDiem
+
+' Quan hệ ManyToMany
+NguoiDung "*" -- "*" VaiTro
+
+@enduml

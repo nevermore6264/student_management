@@ -1,0 +1,58 @@
+@startuml
+' Use Case Diagram: Sinh Viên (Kiểu block như Giảng viên)
+skinparam backgroundColor #FFFFFF
+skinparam usecase {
+  BackgroundColor #E3F2FD
+  BorderColor #1976D2
+  FontColor #0D47A1
+  FontSize 15
+  BorderThickness 1.5
+}
+skinparam actor {
+  BackgroundColor #FFFDE7
+  BorderColor #FBC02D
+  FontColor #F57C00
+  FontSize 18
+  BorderThickness 2
+}
+skinparam Arrow {
+  Color #388E3C
+  Thickness 1.5
+}
+
+actor SinhVien as "Sinh Viên"
+
+
+
+rectangle "Chức năng Sinh Viên" as SVBG #E3F2FD {
+  usecase UC_DangNhap as "Đăng nhập"
+  usecase UC_DangKy as "Đăng ký tài khoản"
+  usecase UC_QuenMatKhau as "Quên mật khẩu"
+  usecase UC_XemSuaThongTin as "Xem thông tin cá nhân"
+  usecase UC_XemTKB as "Xem thời khóa biểu"
+  usecase UC_DangKyHocPhan as "Đăng ký học phần"
+  usecase UC_XemLichSuDK as "Xem lịch sử đăng ký"
+  usecase UC_XemKetQua as "Xem kết quả học tập"
+
+  ' Sắp xếp vị trí 4 trên 4 dưới
+  UC_DangNhap -[hidden]-> UC_DangKy
+  UC_DangKy -[hidden]-> UC_QuenMatKhau
+  UC_QuenMatKhau -[hidden]-> UC_XemSuaThongTin
+  UC_XemSuaThongTin -[hidden]-> UC_XemTKB
+  UC_XemTKB -[hidden]-> UC_DangKyHocPhan
+  UC_DangKyHocPhan -[hidden]-> UC_XemLichSuDK
+  UC_XemLichSuDK -[hidden]-> UC_XemKetQua
+  ' Tạo khoảng cách giữa 2 hàng
+  UC_XemSuaThongTin -[hidden]-> UC_XemTKB
+}
+
+SinhVien --> UC_DangNhap
+SinhVien --> UC_DangKy
+SinhVien --> UC_QuenMatKhau
+SinhVien --> UC_XemSuaThongTin
+SinhVien --> UC_XemTKB
+SinhVien --> UC_DangKyHocPhan
+SinhVien --> UC_XemLichSuDK
+SinhVien --> UC_XemKetQua
+
+@enduml

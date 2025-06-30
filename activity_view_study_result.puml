@@ -1,0 +1,19 @@
+@startuml
+' Activity Diagram: Xem kết quả học tập của sinh viên
+|Sinh viên|
+start
+:Chọn chức năng xem kết quả học tập;
+|Hệ thống|
+:Nhận yêu cầu lấy kết quả học tập;
+:Truy vấn kết quả học tập theo mã sinh viên;
+if (Có dữ liệu?) then (Có)
+  :Trả về danh sách kết quả học tập;
+  |Sinh viên|
+  :Hiển thị kết quả học tập;
+else (Không)
+  :Trả về thông báo không có dữ liệu;
+  |Sinh viên|
+  :Hiển thị thông báo không có dữ liệu;
+endif
+stop
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+' Activity Diagram: Đăng ký học phần (Sinh viên)
+|Sinh viên|
+start
+:Chọn chức năng đăng ký học phần;
+|Hệ thống|
+:Hiển thị danh sách các đợt đăng ký;
+|Sinh viên|
+:Chọn một đợt đăng ký;
+|Hệ thống|
+:Hiển thị danh sách lớp học phần có thể đăng ký cho đợt đã chọn;
+|Sinh viên|
+:Chọn lớp học phần muốn đăng ký;
+:Nhấn nút Đăng ký;
+|Hệ thống|
+:Kiểm tra điều kiện đăng ký (trùng lịch, đủ điều kiện...)?;
+if (Đủ điều kiện?) then (Có)
+  :Thực hiện đăng ký lớp học phần;
+  :Trả về thông báo đăng ký thành công;
+  |Sinh viên|
+  :Hiển thị thông báo thành công;
+else (Không)
+  :Trả về thông báo lỗi;
+  |Sinh viên|
+  :Hiển thị thông báo lỗi;
+endif
+stop
+@enduml

@@ -1,0 +1,19 @@
+@startuml
+' Activity Diagram: Xem lịch sử đăng ký (Sinh viên)
+|Sinh viên|
+start
+:Chọn chức năng xem lịch sử đăng ký;
+|Hệ thống|
+:Nhận yêu cầu lấy lịch sử đăng ký;
+:Truy vấn lịch sử đăng ký theo mã sinh viên hoặc đợt đăng ký;
+if (Có dữ liệu?) then (Có)
+  :Trả về danh sách lịch sử đăng ký;
+  |Sinh viên|
+  :Hiển thị lịch sử đăng ký;
+else (Không)
+  :Trả về thông báo không có dữ liệu;
+  |Sinh viên|
+  :Hiển thị thông báo không có dữ liệu;
+endif
+stop
+@enduml

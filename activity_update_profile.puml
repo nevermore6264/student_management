@@ -1,0 +1,22 @@
+@startuml
+' Activity Diagram: Sửa thông tin cá nhân (Sinh viên)
+|Sinh viên|
+start
+:Chọn chức năng sửa thông tin cá nhân;
+:Nhập thông tin mới;
+:Nhấn nút Lưu/Cập nhật;
+|Hệ thống|
+:Nhận yêu cầu cập nhật thông tin;
+:Kiểm tra thông tin hợp lệ?;
+if (Thông tin hợp lệ?) then (Có)
+  :Cập nhật thông tin sinh viên;
+  :Trả về thông báo thành công và thông tin mới;
+  |Sinh viên|
+  :Hiển thị thông báo thành công;
+else (Không)
+  :Trả về thông báo lỗi;
+  |Sinh viên|
+  :Hiển thị thông báo lỗi;
+endif
+stop
+@enduml

@@ -1,0 +1,232 @@
+@startuml
+' Sơ đồ class mức 2 cho các entity chính (có thuộc tính)
+' Chỉ thể hiện các class entity, thuộc tính chính và quan hệ (ManyToOne, OneToMany, OneToOne, ManyToMany)
+
+class VaiTro {
+  - maVaiTro: String
+  - tenVaiTro: String
+  - moTa: String
+}
+
+class ThoiKhoaBieu {
+  - maTKB: Integer
+  - thu: Integer
+  - tietBatDau: Integer
+  - soTiet: Integer
+  - phongHoc: String
+  --
+  - lopHocPhan: LopHocPhan
+}
+
+class SinhVien {
+  - maSinhVien: String
+  - hoTenSinhVien: String
+  - ngaySinh: LocalDateTime
+  - gioiTinh: Boolean
+  - email: String
+  - soDienThoai: String
+  - diaChi: String
+  --
+  - lop: Lop
+  - diems: Set<Diem>
+  - keHoachCoSinhViens: Set<KeHoachCoSinhVien>
+  - phienDangKys: Set<PhienDangKy>
+  - lichSuDangKys: Set<LichSuDangKy>
+}
+
+class PhienDangKy {
+  - id: PhienDangKyId
+  - ngayGioBatDau: LocalDateTime
+  - thoiGian: Integer
+  - trangThai: Boolean
+  --
+  - sinhVien: SinhVien
+  - dotDangKy: DotDangKy
+  - dangKyHocPhans: List<DangKyHocPhan>
+}
+
+class NguoiDung {
+  - maNguoiDung: String
+  - tenNguoiDung: String
+  - email: String
+  - matKhau: String
+  - soDienThoai: String
+  - diaChi: String
+  - trangThai: Boolean
+  - ngayTao: LocalDateTime
+  - resetCode: String
+  - resetCodeExpiry: LocalDateTime
+  --
+  - vaiTros: Set<VaiTro>
+}
+
+class LopHocPhan {
+  - maLopHP: String
+  - tenLopHP: String
+  - soLuong: Integer
+  - giangVien: String
+  - thoiGianBatDau: LocalDateTime
+  - thoiGianKetThuc: LocalDateTime
+  - phongHoc: String
+  - trangThai: Boolean
+  --
+  - hocPhan: HocPhan
+  - diems: List<Diem>
+  - dangKyHocPhans: List<DangKyHocPhan>
+  - thoiKhoaBieus: List<ThoiKhoaBieu>
+  - lichSuDangKys: List<LichSuDangKy>
+}
+
+class Lop {
+  - maLop: String
+  - tenLop: String
+  - khoaHoc: String
+  - heDaoTao: String
+  --
+  - khoa: Khoa
+  - sinhViens: List<SinhVien>
+}
+
+class LichSuDangKy {
+  - id: LichSuDangKyId
+  - ngayGioDangKy: LocalDateTime
+  - trangThai: Boolean
+  - ghiChu: String
+  --
+  - sinhVien: SinhVien
+  - lopHocPhan: LopHocPhan
+}
+
+class Khoa {
+  - maKhoa: String
+  - tenKhoa: String
+  - soDienThoai: String
+  - email: String
+  - diaChi: String
+  - maTruong: String
+  - trangThai: Integer
+  --
+  - lops: List<Lop>
+  - hocPhans: List<HocPhan>
+  - giangViens: List<GiangVien>
+  - dotDangKys: List<DotDangKy>
+}
+
+class KeHoachCoSinhVien {
+  - id: KeHoachCoSinhVienId
+  - hocKyDuKien: Integer
+  - namHocDuKien: String
+  - trangThai: Integer
+  --
+  - sinhVien: SinhVien
+  - hocPhan: HocPhan
+}
+
+class HocPhan {
+  - maHocPhan: String
+  - tenHocPhan: String
+  - soTinChi: Integer
+  --
+  - khoa: Khoa
+  - lopHocPhans: List<LopHocPhan>
+  - keHoachCoSinhViens: List<KeHoachCoSinhVien>
+  - heSoDiem: HeSoDiem
+}
+
+class HeSoDiem {
+  - maHocPhan: String
+  - heSoChuyenCan: Float
+  - heSoGiuaKy: Float
+  - heSoCuoiKy: Float
+  --
+  - hocPhan: HocPhan
+}
+
+class GiangVien {
+  - maGiangVien: String
+  - tenGiangVien: String
+  - email: String
+  - soDienThoai: String
+  --
+  - khoa: Khoa
+}
+
+class DotDangKy {
+  - maDotDK: String
+  - tenDotDK: String
+  - ngayGioBatDau: LocalDateTime
+  - ngayGioKetThuc: LocalDateTime
+  - thoiGian: Integer
+  - moTa: String
+  - trangThai: Boolean
+  --
+  - khoa: Khoa
+  - phienDangKys: List<PhienDangKy>
+}
+
+class Diem {
+  - id: DiemId
+  - diemChuyenCan: Float
+  - diemGiuaKy: Float
+  - diemCuoiKy: Float
+  - diemTongKet: Float
+  - ghiChu: String
+  --
+  - sinhVien: SinhVien
+  - lopHocPhan: LopHocPhan
+}
+
+class DangKyHocPhan {
+  - id: DangKyHocPhanId
+  - thoiGianDangKy: LocalDateTime
+  - trangThai: Boolean
+  - ketQuaDangKy: Integer
+  --
+  - phienDangKy: PhienDangKy
+  - lopHocPhan: LopHocPhan
+}
+
+' Quan hệ ManyToOne (chỉ vẽ chiều mũi tên)
+ThoiKhoaBieu --> LopHocPhan
+SinhVien --> Lop
+PhienDangKy --> DotDangKy
+PhienDangKy --> SinhVien
+LopHocPhan --> HocPhan
+Lop --> Khoa
+LichSuDangKy --> SinhVien
+LichSuDangKy --> LopHocPhan
+KeHoachCoSinhVien --> SinhVien
+KeHoachCoSinhVien --> HocPhan
+HocPhan --> Khoa
+GiangVien --> Khoa
+DotDangKy --> Khoa
+Diem --> SinhVien
+Diem --> LopHocPhan
+DangKyHocPhan --> PhienDangKy
+DangKyHocPhan --> LopHocPhan
+
+' Quan hệ OneToMany (ngược chiều ManyToOne)
+LopHocPhan "1" --o "*" ThoiKhoaBieu
+Lop "1" --o "*" SinhVien
+DotDangKy "1" --o "*" PhienDangKy
+HocPhan "1" --o "*" LopHocPhan
+Khoa "1" --o "*" Lop
+SinhVien "1" --o "*" LichSuDangKy
+LopHocPhan "1" --o "*" LichSuDangKy
+SinhVien "1" --o "*" KeHoachCoSinhVien
+HocPhan "1" --o "*" KeHoachCoSinhVien
+Khoa "1" --o "*" HocPhan
+Khoa "1" --o "*" GiangVien
+Khoa "1" --o "*" DotDangKy
+SinhVien "1" --o "*" Diem
+LopHocPhan "1" --o "*" Diem
+PhienDangKy "1" --o "*" DangKyHocPhan
+LopHocPhan "1" --o "*" DangKyHocPhan
+
+' Quan hệ OneToOne
+HocPhan -- HeSoDiem
+
+' Quan hệ ManyToMany
+NguoiDung "*" -- "*" VaiTro
+
+@enduml

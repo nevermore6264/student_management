@@ -1,0 +1,21 @@
+@startuml
+' Activity Diagram: Xem thời khóa biểu (Sinh viên)
+|Sinh viên|
+start
+:Chọn chức năng xem thời khóa biểu;
+:Nhập/chọn mã sinh viên hoặc lớp học phần;
+:Nhấn nút xem thời khóa biểu;
+|Hệ thống|
+:Nhận yêu cầu lấy thời khóa biểu;
+:Truy vấn thời khóa biểu theo mã sinh viên/lớp học phần;
+if (Tìm thấy thời khóa biểu?) then (Có)
+  :Trả về dữ liệu thời khóa biểu;
+  |Sinh viên|
+  :Hiển thị thời khóa biểu;
+else (Không)
+  :Trả về thông báo lỗi;
+  |Sinh viên|
+  :Hiển thị thông báo lỗi;
+endif
+stop
+@enduml
